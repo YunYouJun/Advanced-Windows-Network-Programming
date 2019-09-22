@@ -87,10 +87,10 @@ void ReadFrame(string frameFilename) {
 	}
 
 	fin.seekg(0, ios::end);
-	fileEnd = fin.tellg();
+	fileEnd = fin.tellg();	// get the end position of file
 	fin.seekg(0, ios::beg);
 
-	InitCrcTable();
+	InitCrcTable();	// init CRC32 table
 	unsigned int no = 0;
 	while (IsFrameStart(fin)) {
 		no++;
@@ -104,9 +104,7 @@ void ReadFrame(string frameFilename) {
 
 frame ParseFrame(ifstream &fin,unsigned int no) {
 	frame ethernetFrame;
-	int c;
 	ethernetFrame.no = no;
-	cout << hex;
 	for (int i = 0; i < ADDRESS_SIZE; i++) {
 		ethernetFrame.da[i] = fin.get();
 	}
@@ -134,8 +132,7 @@ frame ParseFrame(ifstream &fin,unsigned int no) {
 		}
 	}
 	for (int i = FCS_SIZE - 1; i >= 0; i--) {
-		c = fin.get();
-		ethernetFrame.fcs[i] = c;
+		ethernetFrame.fcs[i] = fin.get();
 	}
 	return ethernetFrame;
 }
