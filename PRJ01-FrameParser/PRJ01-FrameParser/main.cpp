@@ -61,13 +61,16 @@ void ReadFrame(string frameFilename);
 int main(int argc, char* argv[]) {
 	string frameFilename;
 	cout << "Frame Parser:" << endl;
-	cout << "-----------------" << endl;
-	cout << "Please input frame filename: ";
-	cin >> frameFilename;
-	cout << "\n----------------------------------\n" << endl;
+	cout << "-------------------------------------------------" << endl;
 	if (argv[1]) {
 		frameFilename = argv[1];
+		cout << "Parse frame filename: " << frameFilename << endl;
 	}
+	else {
+		cout << "Please input frame filename: ";
+		cin >> frameFilename;
+	}
+	cout << "-------------------------------------------------\n" << endl;
 	//frameFilename = "testFrame";
 	ReadFrame(frameFilename);
 	return 0;

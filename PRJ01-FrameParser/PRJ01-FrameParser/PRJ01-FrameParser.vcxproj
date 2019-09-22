@@ -20,9 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{7033FF61-6F64-4FE0-B4AB-C517EF2E5B9D}</ProjectGuid>
+    <ProjectGuid>{B8B71A35-9FB6-4483-A923-55CA357613FC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Project1FrameParser</RootNamespace>
+    <RootNamespace>PRJ01FrameParser</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
