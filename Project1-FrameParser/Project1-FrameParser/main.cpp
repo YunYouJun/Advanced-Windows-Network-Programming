@@ -1,4 +1,14 @@
-﻿#include <iostream>
+﻿/********************************************************************
+	*    Advanced Windows Network Programming
+  *    Project-01 Frame Parser
+	*    201920081203009 杨睿 <me@yunyoujun.cn>
+
+I declare that the assignment here submitted is original except for source material explicitly acknowledged. 
+I also acknowledge that I am aware of University policy and regulations on honesty in academic work, 
+and of the disciplinary guidelines and procedures applicable to breaches of such policy and regulations. 
+*********************************************************************/
+
+#include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <vector>
@@ -171,8 +181,7 @@ void PrintFrame(frame ethernetFrame) {
 		cout << ethernetFrame.data[i];
 	}
 	cout << endl;
-	cout << "FCS:" << "\t\t\t";
-	cout << "0x ";
+	cout << "FCS:" << "\t\t\t" << "0x ";
 	for (i = 0; i < FCS_SIZE; i++) {
 		cout << hex << nouppercase << (int)ethernetFrame.fcs[i];
 	}
