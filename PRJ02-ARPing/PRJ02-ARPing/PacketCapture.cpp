@@ -47,9 +47,6 @@ int PacketCapture::selectAdapter() {
 		if (getLocalIp()) {
 			break;
 		}
-		else {
-			return -1;
-		}
 	}
 
 	if (
