@@ -106,7 +106,7 @@ void PacketCapture::getLocalMac(unsigned char* sha) {
 			//		printf("%02x-", pIpAdapterInfo->Address[i]);
 			//	}
 			//}
-			//cout << "Adapter Ip Address£º" << "\t\t";
+			//cout << "Adapter Ip Addressï¿½ï¿½" << "\t\t";
 			//// network card maybe have multi-ip
 			//IP_ADDR_STRING* pIpAddrString = &(pIpAdapterInfo->IpAddressList);
 			//do
@@ -136,7 +136,7 @@ void PacketCapture::getLocalMac(unsigned char* sha) {
 unsigned long PacketCapture::getLocalIp() {
 	pcap_addr_t* ipAddress;
 	for (ipAddress = d->addresses; ipAddress; ipAddress = ipAddress->next) {
-		// TCP/IP ¨C IPv4
+		// TCP/IP IPv4
 		if (AF_INET == ipAddress->addr->sa_family) {
 			if (ipAddress->addr) {
 				return ((struct sockaddr_in*) ipAddress->addr)->sin_addr.S_un.S_addr;

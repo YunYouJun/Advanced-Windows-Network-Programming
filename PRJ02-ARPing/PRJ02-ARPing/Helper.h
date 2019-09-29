@@ -8,7 +8,7 @@
 #pragma comment(lib, "wpcap.lib")
 
 #include <Windows.h>
-#include <iphlpapi.h>	// 提供了一些实用的获取网络信息（网卡、tcp/ip等）的函数
+#include <iphlpapi.h>	// provide some function about network card & tcp/ip
 
 class Helper {
 public:
