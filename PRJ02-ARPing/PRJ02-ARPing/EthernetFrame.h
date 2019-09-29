@@ -13,6 +13,11 @@ class EthernetFrame
 public:
 	EthernetFrame();
 	EthernetFrame(unsigned char* da, unsigned char* sa, unsigned short et, ARP* arpData);
-	~EthernetFrame();
+	EthernetFrame(unsigned char* buffer);
+	void frameToByte(unsigned char* buf);
+	unsigned short getArpOperationCode();
+	void dataToArp(ARP& arp);
+	unsigned char* getArpSha();
+	unsigned long getArpSpa();
 };
 

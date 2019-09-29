@@ -38,5 +38,8 @@
     <ClInclude Include="EthernetFrame.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Helper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
