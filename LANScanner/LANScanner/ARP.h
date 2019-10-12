@@ -32,15 +32,15 @@ static const int DEFEND_INTERVAL = 10;//10 seconds (minimum interval between def
 class ARP : public PDU
 {
 protected:
-	WORD m_HardwareType;//hrd: hardware type.
-	WORD m_ProtocolType;//pro: protocol type
-	BYTE m_HardwareAddrLen;//hln: length of each hardware address.
-	BYTE m_ProtocolAddrLen;//pln: length of each protocol address.
-	WORD m_OpCode;//op:opcode
-	BYTE m_SenderHardwareAddr[6];//sha:hardware address of sender of this packet.
-	DWORD m_SenderProtocolAddr;//protocol address of sender of this packet.
-	BYTE m_TargetHardwareAddr[6];//tha:hardware address of target of this packet.
-	DWORD m_TargetProtocolAddr;//protocol address of target.
+	WORD m_hardware_type;//hrd: hardware type.
+	WORD m_protocol_type;//pro: protocol type
+	BYTE m_hardware_address_length;//hln: length of each hardware address.
+	BYTE m_protocol_address_length;//pln: length of each protocol address.
+	WORD m_op_code;//op:opcode
+	BYTE m_sender_hardware_address[6];//sha:hardware address of sender of this packet.
+	DWORD m_sender_protocol_address;//protocol address of sender of this packet.
+	BYTE m_target_hardware_address[6];//tha:hardware address of target of this packet.
+	DWORD m_target_protocol_address;//protocol address of target.
 
 public:
 	ARP(void) { ; }

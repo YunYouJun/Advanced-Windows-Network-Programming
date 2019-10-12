@@ -32,15 +32,18 @@ int Device::openAdapter(const char* nam)
 	}
 
 	/* Open the device */
-	if ((adhandle = pcap_open(d->name,          // name of the device
-		65536,            // portion of the packet to capture
-						  // 65536 guarantees that the whole packet will be captured on all the link layers
-		PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
-		1000,             // read timeout
-		NULL,             // authentication on the remote machine
-		errbuf            // error buffer
-	)) == NULL)
-		return -1;
+	if (d) {
+		if ((adhandle = pcap_open(
+			d->name,          // name of the device
+			65536,            // portion of the packet to capture
+							  // 65536 guarantees that the whole packet will be captured on all the link layers
+			PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
+			1000,             // read timeout
+			NULL,             // authentication on the remote machine
+			errbuf            // error buffer
+		)) == NULL)
+			return -1;
+	}
 
 	return 0;
 }

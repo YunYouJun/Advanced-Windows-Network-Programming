@@ -11,6 +11,7 @@
 
 // Declare user message ID
 #define WM_COMPLETE (WM_USER + 100)
+#define WM_HOST (WM_USER + 101)
 
 // CLANScannerDlg 对话框
 class CLANScannerDlg : public CDHtmlDialog
@@ -27,7 +28,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
-	HRESULT OnButtonOK(IHTMLElement* pElement);
+	HRESULT OnButtonScan(IHTMLElement* pElement);
 	HRESULT OnButtonCancel(IHTMLElement* pElement);
 	HRESULT OnButtonAbout(IHTMLElement* pElement);
 
@@ -40,10 +41,16 @@ protected:
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+
+	// custom
+	afx_msg LRESULT OnComplete(WPARAM wParam, LPARAM lParam);
+
 	DECLARE_MESSAGE_MAP()
 	DECLARE_DHTML_EVENT_MAP()
 
 public:
+	DWORD hostipp;
+
 	NIC nic;
 	int index;
 	Device device;
@@ -53,7 +60,7 @@ public:
 	DWORD netmask;
 	DWORD ipbeg;
 	DWORD ipend;
-	bool started;
+	bool started = false;
 	CWinThread* hThreadsend;
 	CWinThread* hThreadrecv;
 	SYSTEMTIME timesend;
@@ -61,6 +68,8 @@ public:
 	time_t diff;
 	DWORD hostip;
 	BYTE hostmac[6];
+
+	CString btnScanText;
 
 	CComboBox m_CComboBox;
 	long m_nic_index;
@@ -75,7 +84,14 @@ public:
 	CString m_nic_gatewayipaddress;
 	CString m_nic_gatewaymac;
 
+	CString m_host_list;
+	CString m_host_list_table_head = "<table width=100% class=list border=1 bgcolor=black cellspacing=0 style=font-size:12px><thead><tr><th width=25%>IP Address</th><th width=25%>MAC Address</th><th width=25%>Host Name</th><th width=25%>Arp Time</th></tr></thead><tbody style=text-align:center>";
+	CString m_host_list_table_tail = "</tbody></table>";
+	CString m_host_list_table_content;
 public:
 	//IHTMLElement* pElement
 	afx_msg void OnSelectChangeNic();
+
+	static UINT sendPacket(LPVOID lpParam);
+	static UINT recvPacket(LPVOID lpParam);
 };

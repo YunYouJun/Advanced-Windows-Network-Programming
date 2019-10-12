@@ -8,7 +8,7 @@ EthernetFrame::EthernetFrame(void)
 	m_EtherType = 0;
 	m_MACDATA = NULL;
 	m_MACDATALength = 0;
-	m_PADLength = 0;
+	//m_PADLength = 0;
 }
 
 EthernetFrame::EthernetFrame(BYTE* DestAddress, BYTE* SourceAddress, WORD EtherType)
