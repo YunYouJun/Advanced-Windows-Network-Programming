@@ -21,7 +21,7 @@
     <ClInclude Include="LANScannerDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="framework.h">
+    <ClInclude Include="stdafx.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
@@ -30,25 +30,22 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="NIC.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ARP.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PDU.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Device.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="EthernetFrame.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PDU.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NIC.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -59,10 +56,7 @@
     <ClCompile Include="LANScannerDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="NIC.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ARP.cpp">
@@ -72,6 +66,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="EthernetFrame.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NIC.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

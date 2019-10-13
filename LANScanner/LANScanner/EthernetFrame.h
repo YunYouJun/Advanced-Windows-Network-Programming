@@ -12,7 +12,8 @@ protected:
 	WORD m_ether_type;
 
 	PDU* m_mac_data;
-	int   m_PADLength;		//Length of PAD, range:0,46
+	//Length of PAD, range:0,46
+	int   m_PADLength;
 
 public:
 	EthernetFrame(void);

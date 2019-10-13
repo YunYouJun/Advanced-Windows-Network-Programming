@@ -2,8 +2,7 @@
 // LANScannerDlg.cpp: 实现文件
 //
 
-#include "pch.h"
-#include "framework.h"
+#include "stdafx.h"
 #include "LANScanner.h"
 #include "LANScannerDlg.h"
 #include "afxdialogex.h"
@@ -21,12 +20,12 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// 对话框数据
+	// 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 // 实现
@@ -134,7 +133,7 @@ BOOL CLANScannerDlg::OnInitDialog()
 	vector<char*> al = nic.getAdapterList();
 
 	int row = 0;
-	
+
 	for (vector<char*>::const_iterator iter = al.begin(); iter != al.end(); ++iter)
 	{
 		m_CComboBox.InsertString(row, *iter);
@@ -264,7 +263,6 @@ HRESULT CLANScannerDlg::OnButtonAbout(IHTMLElement* /*pElement*/)
 	return S_OK;
 }
 
-//IHTMLElement* /*pElement*/
 void CLANScannerDlg::OnSelectChangeNic()
 {
 	index = m_CComboBox.GetCurSel();
@@ -326,7 +324,7 @@ UINT CLANScannerDlg::recvPacket(LPVOID lpParam)
 	struct pcap_pkthdr* header;
 	const u_char* pkt_data;
 	EthernetFrame ef;
-	ARP arp, * parp;
+	ARP arp, *parp;
 	PDU* pdu = &arp;
 	ef.SetMACDATA(pdu);
 

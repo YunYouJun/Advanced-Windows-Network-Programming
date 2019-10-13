@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "stdafx.h"
 #include "ARP.h"
 
 //(BYTE *)ARP强制转换，需要对ARP类进行#pragma pack(1)，但是这里用到了虚函数，ARP对象最前会有4字节的虚指针，容易出错。这样写的话就不需要#pragma pack(1)了

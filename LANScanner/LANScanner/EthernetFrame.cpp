@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "stdafx.h"
 #include "EthernetFrame.h"
 
 EthernetFrame::EthernetFrame(void)
