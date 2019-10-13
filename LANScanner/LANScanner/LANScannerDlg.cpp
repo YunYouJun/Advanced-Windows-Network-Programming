@@ -50,7 +50,6 @@ END_MESSAGE_MAP()
 // _T 转换为宽字节
 
 BEGIN_DHTML_EVENT_MAP(CLANScannerDlg)
-	//DHTML_EVENT_ONCHANGE(_T("nic-select"), OnSelectChangeNic)
 	DHTML_EVENT_ONCLICK(_T("ButtonScan"), OnButtonScan)
 	DHTML_EVENT_ONCLICK(_T("ButtonCancel"), OnButtonCancel)
 	DHTML_EVENT_ONCLICK(_T("ButtonAbout"), OnButtonAbout)
@@ -134,6 +133,7 @@ BOOL CLANScannerDlg::OnInitDialog()
 
 	int row = 0;
 
+	// display nic info
 	for (vector<char*>::const_iterator iter = al.begin(); iter != al.end(); ++iter)
 	{
 		m_CComboBox.InsertString(row, *iter);
@@ -221,6 +221,7 @@ HRESULT CLANScannerDlg::OnButtonScan(IHTMLElement* /*pElement*/)
 		ipbeg = ntohl(localip & netmask);	// ntohl() 将一个无符号长整形数从网络字节顺序转换为主机字节顺序
 		ipend = ipbeg + ~ntohl(netmask);
 
+		// start send and receive packet thread
 		hThreadsend = AfxBeginThread(sendPacket, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 		hThreadrecv = AfxBeginThread(recvPacket, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 	}
@@ -356,8 +357,6 @@ UINT CLANScannerDlg::recvPacket(LPVOID lpParam)
 			Common::dword2char(p->hostip, hostip);
 
 			// get arp time
-			// static_cast是一个c++运算符，功能是把一个表达式转换为某种类型类型，但没有运行时类型检查来保证转换的安全性。
-			// https://docs.microsoft.com/zh-cn/visualstudio/code-quality/c6328?f1url=https%3A%2F%2Fmsdn.microsoft.com%2Fquery%2Fdev16.query%3FappId%3DDev16IDEF1%26l%3DZH-CN%26k%3Dk(C6328)%26rd%3Dtrue%26f%3D255%26MSPPError%3D-2147217396&view=vs-2019
 			CString time;
 			time.Format("%d ms", (int)p->diff);
 
