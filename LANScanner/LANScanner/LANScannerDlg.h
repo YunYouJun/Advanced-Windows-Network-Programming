@@ -72,11 +72,6 @@ public:
 	CString btnScanText;
 
 	CComboBox m_CComboBox;
-	long m_nic_index;
-	long m_nic_select_index;
-	CString m_nic_select_string;
-	//CComPtr<IHTMLElement> m_nic_select;
-	CString m_nic_name;
 	CString m_nic_select;
 	CString m_nic_ipaddress;
 	CString m_nic_subnetmask;
@@ -89,7 +84,6 @@ public:
 	CString m_host_list_table_tail = "</tbody></table>";
 	CString m_host_list_table_content;
 public:
-	//IHTMLElement* pElement
 	afx_msg void OnSelectChangeNic();
 
 	static UINT sendPacket(LPVOID lpParam);

@@ -69,8 +69,6 @@ void CLANScannerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDHtmlDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_COMBO_NIC, m_CComboBox);
-	DDX_DHtml_SelectIndex(pDX, _T("nic-select"), m_nic_index);
-	DDX_DHtml_SelectString(pDX, _T("nic-select"), m_nic_select_string);
 
 	DDX_DHtml_ElementInnerText(pDX, _T("ButtonScan"), btnScanText);
 	DDX_DHtml_ElementValue(pDX, _T("ipAddress"), m_nic_ipaddress);

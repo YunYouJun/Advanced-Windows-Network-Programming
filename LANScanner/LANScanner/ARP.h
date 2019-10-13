@@ -4,30 +4,12 @@
 
 #pragma pack(1)
 
-//http://www.iana.org/assignments/arp-parameters/
 static const WORD HRD_ETHERNET = 1; // Ethernet
-static const WORD HRD_LOOPBACK = 772; // Loopback interface
-static const WORD HRD_IEEE80211 = 801; // IEEE 802.11
-static const WORD HRD_NONE = 0xFFFE; // Zero header device
 static const WORD PRO_IP = 0x0800;
 
 // Opcodes.
 static const WORD OP_REQUEST = 1;//ARP REQUEST
 static const WORD OP_REPLY = 2;//ARP REPLY
-static const WORD OP_RREQUEST = 3;//RARP request Reverse
-static const WORD OP_RREPLY = 4;//RARP reply Reverse
-
-// Constants from RFC 3927 - Dynamic Configuration of IPv4 Link-Local Addresses
-static const int PROBE_WAIT = 1;//1 second (initial random delay)
-static const int PROBE_NUM = 3;//3 (number of probe packets)
-static const int PROBE_MIN = 1;//1 second (minimum delay till repeated probe)
-static const int PROBE_MAX = 2;//2 seconds (maximum delay till repeated probe)
-static const int ANNOUNCE_WAIT = 2;//2 seconds (delay before announcing)
-static const int ANNOUNCE_NUM = 2;//2 (number of announcement packets)
-static const int ANNOUNCE_INTERVAL = 2;//2 seconds (time between announcement packets)
-static const int MAX_CONFLICTS = 10;//10 (max conflicts before rate limiting)
-static const int RATE_LIMIT_INTERVAL = 60;//60 seconds (delay between successive attempts)
-static const int DEFEND_INTERVAL = 10;//10 seconds (minimum interval between defensive ARPs).
 
 class ARP : public PDU
 {

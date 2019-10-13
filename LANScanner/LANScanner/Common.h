@@ -34,9 +34,6 @@ public:
 
 	static PCSTR dword2char(const DWORD ip, char* IP)
 	{
-		//struct in_addr addr;
-		//addr.S_un.S_addr = ip;
-		//return inet_ntoa(addr);
 		return inet_ntop(AF_INET, (void*)&ip, IP, 16);	// inet_ntoa() is deprecated API
 	}
 };
