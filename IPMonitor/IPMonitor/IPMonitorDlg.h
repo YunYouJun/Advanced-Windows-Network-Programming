@@ -1,78 +1,70 @@
-﻿
-// IPMonitorDlg.h: 头文件
+
+// IPMonitorDlg.h : header file
 //
 
 #pragma once
-#include "Device.h"
 #include "NIC.h"
-#include "EthernetFrame.h"
+#include "Device.h"
 #include "IP.h"
+#include "EthernetFrame.h"
 
 #define WM_RECV (WM_USER + 100)
 
-// CIPMonitorDlg 对话框
-class CIPMonitorDlg : public CDHtmlDialog
+// CIPMonitorDlg dialog
+class CIPMonitorDlg : public CDialog
 {
-// 构造
+// Construction
 public:
-	CIPMonitorDlg(CWnd* pParent = nullptr);	// 标准构造函数
+	CIPMonitorDlg(CWnd* pParent = NULL);	// standard constructor
 
-// 对话框数据
-#ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_IPMONITOR_DIALOG, IDH = IDR_HTML_IPMONITOR_DIALOG };
-#endif
+// Dialog Data
+	enum { IDD = IDD_IPMONITOR_DIALOG };
 
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
+	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
-	HRESULT OnButtonScan(IHTMLElement* pElement);
-	HRESULT OnButtonCancel(IHTMLElement* pElement);
-	HRESULT OnButtonAbout(IHTMLElement* pElement);
 
-// 实现
+// Implementation
 protected:
 	HICON m_hIcon;
 
-	// 生成的消息映射函数
+	// Generated message map functions
 	virtual BOOL OnInitDialog();
-	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg LRESULT OnRecv(WPARAM wParam, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()
-	DECLARE_DHTML_EVENT_MAP()
-
+public:
+	afx_msg void OnBnClickedButtonExit();
+	afx_msg void OnBnClickedButtonAbout();
+	afx_msg void OnCbnSelchangeComboNic();
+	afx_msg void OnBnClickedButtonScan();
+	afx_msg void OnBnClickedCheckSource();
+	afx_msg void OnBnClickedCheckDestination();
+	afx_msg void OnBnClickedButtonClear();
+	static UINT recvAll(LPVOID lpParam);
 public:
 	NIC nic;
 	int index;
 	Device device;
 	bool started;
-	CWinThread* hThreadrecv;
+	CWinThread *hThreadrecv;
+
+	bool src_checked;
+	bool dst_checked;
 
 	DWORD local_ip;
-
 	DWORD srcip;
 	DWORD dstip;
 	BYTE proto;
 
-	CString btnScanText = "Scan";
-
 	CComboBox m_CComboBox;
 	CListCtrl m_CListCtrl;
+	CButton m_CheckBoxSource;
+	CButton m_CheckBoxDestination;
 	CString m_nic_ipaddress;
 	CString m_nic_subnetmask;
 	CString m_nic_macaddress;
 	CString m_nic_gatewayipaddress;
 	CString m_nic_gatewaymac;
-
-	CButton m_CheckBoxSource;
-	CButton m_CheckBoxDestination;
-
-	bool src_checked;
-	bool dst_checked;
-
-	afx_msg void OnSelectChangeNic();
-	afx_msg void OnBnClickedCheckSource();
-	afx_msg void OnBnClickedCheckDestination();
-	static UINT recvPacket(LPVOID lpParam);
 };

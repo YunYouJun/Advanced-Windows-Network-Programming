@@ -3,42 +3,39 @@
 
 NIC::~NIC()
 {
-	if (pAdapterInfo) {
+	if (pAdapterInfo)
 		free(pAdapterInfo);
-	}
 }
 
 int NIC::initNIC()
 {
 	/* Declare and initialize variables */
 	pAdapter = NULL;
-	DWORD dwRetVal = 0;
+    DWORD dwRetVal = 0;
 
-	ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
-	pAdapterInfo = (IP_ADAPTER_INFO*)malloc(sizeof(IP_ADAPTER_INFO));
-	if (pAdapterInfo == NULL)
-		return 1;
+    ULONG ulOutBufLen = sizeof (IP_ADAPTER_INFO);
+    pAdapterInfo = (IP_ADAPTER_INFO *) malloc(sizeof (IP_ADAPTER_INFO));
+    if (pAdapterInfo == NULL)
+        return 1;
 
 	// Make an initial call to GetAdaptersInfo to get
 	// the necessary size into the ulOutBufLen variable
-	if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
-		free(pAdapterInfo);
-		pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
-		if (pAdapterInfo == NULL) {
-			return 1;
-		}
-	}
+    if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+        free(pAdapterInfo);
+        pAdapterInfo = (IP_ADAPTER_INFO *) malloc(ulOutBufLen);
+        if (pAdapterInfo == NULL)
+            return 1;
+    }
 
-	if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
+	if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR)
 		pAdapter = pAdapterInfo;
-	}
 
 	return 0;
 }
 
-vector<char*> NIC::getAdapterList()
+vector<char *> NIC::getAdapterList()
 {
-	vector<char*> temp;
+	vector<char *> temp;
 	while (pAdapter) {
 		temp.push_back(pAdapter->Description);
 		pAdapter = pAdapter->Next;
@@ -51,84 +48,81 @@ void NIC::selectNIC(int index)
 	int count = 0;
 	pAdapter = pAdapterInfo;//backup
 	while (pAdapter) {
-		if (count == index)
+		if(count == index)
 			break;
 		pAdapter = pAdapter->Next;
 		++count;
 	}
 }
 
-char* NIC::getNICname() const
+char *NIC::getNICname() const
 {
 	return pAdapter->AdapterName;
 }
 
-char* NIC::getNICdescription() const
+char *NIC::getNICdescription() const
 {
-	if (NULL == pAdapter)
+	if(NULL == pAdapter)
 		return NULL;
 	return pAdapter->Description;
 }
 
-char* NIC::getIPAddress() const
+char *NIC::getIPAddress() const
 {
-	if (NULL == pAdapter)
+	if(NULL == pAdapter)
 		return NULL;
 	return pAdapter->IpAddressList.IpAddress.String;
 }
 
-char* NIC::getSubnetMask() const
+char *NIC::getSubnetMask() const
 {
-	if (NULL == pAdapter)
+	if(NULL == pAdapter)
 		return NULL;
 	return pAdapter->IpAddressList.IpMask.String;
 }
 
-BYTE* NIC::getMacAddress() const
+BYTE *NIC::getMacAddress() const
 {
-	if (NULL == pAdapter)
+	if(NULL == pAdapter)
 		return NULL;
-	static BYTE mac[6] = { 0 };
+	static BYTE mac[6] = {0};
 	pAdapter->AddressLength;
 	memcpy(mac, pAdapter->Address, pAdapter->AddressLength);
 	return mac;
 }
 
-char* NIC::getGatewayIPAddress() const
+char *NIC::getGatewayIPAddress() const
 {
-	if (NULL == pAdapter)
+	if(NULL == pAdapter)
 		return NULL;
 	return pAdapter->GatewayList.IpAddress.String;
 }
 
-BYTE* NIC::getGatewayMac() const
+BYTE *NIC::getGatewayMac() const
 {
-	DWORD dwRetVal;
-	IPAddr DestIp = 0;
-	IPAddr SrcIp = 0;       /* default for src ip */
-	ULONG MacAddr[2];       /* for 6-byte hardware addresses */
-	ULONG PhysAddrLen = 6;  /* default to length of six bytes */
+    DWORD dwRetVal;
+    IPAddr DestIp = 0;
+    IPAddr SrcIp = 0;       /* default for src ip */
+    ULONG MacAddr[2];       /* for 6-byte hardware addresses */
+    ULONG MacsAddrLen = 6;  /* default to length of six bytes */
 
-	BYTE* bPhysAddr;
+    BYTE *bMacAddr;
 
 	//将一个点分十进制的IP转换成一个长整数型数
-	//inet_pton(AF_INET, getGatewayIPAddress(), &DestIp);
-	//inet_pton(AF_INET, getIPAddress(), &SrcIp);
+	inet_pton(AF_INET, getGatewayIPAddress(), &DestIp);
+	inet_pton(AF_INET, getIPAddress(), &SrcIp);
 
-	DestIp = inet_addr(getGatewayIPAddress());
-	SrcIp = inet_addr(getIPAddress());
+	memset(&MacAddr, 0xff, sizeof (MacAddr));
 
-	memset(&MacAddr, 0xff, sizeof(MacAddr));
+    dwRetVal = SendARP(DestIp, SrcIp, &MacAddr, &MacsAddrLen);
 
-	dwRetVal = SendARP(DestIp, SrcIp, &MacAddr, &PhysAddrLen);
-
-	if (dwRetVal == NO_ERROR)
+    if (dwRetVal == NO_ERROR)
 	{
-		bPhysAddr = (BYTE*)&MacAddr;
-		if (PhysAddrLen)
+        bMacAddr = (BYTE *) & MacAddr;
+		if (MacsAddrLen)
 		{
-			static BYTE mac[6] = { 0 };
-			memcpy(mac, bPhysAddr, PhysAddrLen);
+			static BYTE mac[6] = {0};
+			memcpy(mac, bMacAddr, MacsAddrLen);
 			return mac;
 		}
 	}

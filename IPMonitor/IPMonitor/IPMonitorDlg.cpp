@@ -1,33 +1,28 @@
-﻿
-// IPMonitorDlg.cpp: 实现文件
+// IPMonitorDlg.cpp : implementation file
 //
 
 #include "stdafx.h"
 #include "IPMonitor.h"
 #include "IPMonitorDlg.h"
-#include "afxdialogex.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-
-// 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
 class CAboutDlg : public CDialogEx
 {
 public:
 	CAboutDlg();
 
-	// 对话框数据
+	// �Ի�������
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV ֧��
 
-// 实现
+// ʵ��
 protected:
 	DECLARE_MESSAGE_MAP()
 };
@@ -44,88 +39,67 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
-
-// CIPMonitorDlg 对话框
-
-BEGIN_DHTML_EVENT_MAP(CIPMonitorDlg)
-	DHTML_EVENT_ONCLICK(_T("ButtonScan"), OnButtonScan)
-	DHTML_EVENT_ONCLICK(_T("ButtonCancel"), OnButtonCancel)
-	DHTML_EVENT_ONCLICK(_T("ButtonAbout"), OnButtonAbout)
-END_DHTML_EVENT_MAP()
-
-
-CIPMonitorDlg::CIPMonitorDlg(CWnd* pParent /*=nullptr*/)
-	: CDHtmlDialog(IDD_IPMONITOR_DIALOG, IDR_HTML_IPMONITOR_DIALOG, pParent)
+// CIPMonitorDlg dialog
+CIPMonitorDlg::CIPMonitorDlg(CWnd* pParent /*=NULL*/)
+	: CDialog(CIPMonitorDlg::IDD, pParent)
+	, started(false)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 void CIPMonitorDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDHtmlDialog::DoDataExchange(pDX);
-
+	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_COMBO_NIC, m_CComboBox);
-	DDX_Control(pDX, IDC_LIST_IP, m_CListCtrl);
-
+	DDX_Control(pDX, IDC_LIST, m_CListCtrl);
 	DDX_Control(pDX, IDC_CHECK_SOURCE, m_CheckBoxSource);
 	DDX_Control(pDX, IDC_CHECK_DESTINATION, m_CheckBoxDestination);
 
-	DDX_DHtml_ElementInnerText(pDX, _T("ButtonScan"), btnScanText);
-	DDX_DHtml_ElementValue(pDX, _T("ipAddress"), m_nic_ipaddress);
-	DDX_DHtml_ElementValue(pDX, _T("subnetMask"), m_nic_subnetmask);
-	DDX_DHtml_ElementValue(pDX, _T("macAddress"), m_nic_macaddress);
-	DDX_DHtml_ElementValue(pDX, _T("gatewayIPAddress"), m_nic_gatewayipaddress);
-	DDX_DHtml_ElementValue(pDX, _T("gatewayMac"), m_nic_gatewaymac);
+	// dhtml is ok
+	DDX_Text(pDX, IDC_EDIT_IPADDRESS, m_nic_ipaddress);
+	DDX_Text(pDX, IDC_EDIT_SUBNETMASK, m_nic_subnetmask);
+	DDX_Text(pDX, IDC_EDIT_MACADDRESS, m_nic_macaddress);
+	DDX_Text(pDX, IDC_EDIT_GATEWAYIPADDRESS, m_nic_gatewayipaddress);
+	DDX_Text(pDX, IDC_EDIT_GATEWAYMAC, m_nic_gatewaymac);
 }
 
-BEGIN_MESSAGE_MAP(CIPMonitorDlg, CDHtmlDialog)
-	ON_WM_SYSCOMMAND()
-	ON_CBN_SELCHANGE(IDC_COMBO_NIC, &CIPMonitorDlg::OnSelectChangeNic)
-	ON_MESSAGE(WM_RECV, OnRecv)
+BEGIN_MESSAGE_MAP(CIPMonitorDlg, CDialog)
+	ON_WM_PAINT()
+	ON_WM_QUERYDRAGICON()
+	//}}AFX_MSG_MAP
+	ON_BN_CLICKED(IDC_BUTTON_EXIT, &CIPMonitorDlg::OnBnClickedButtonExit)
+	ON_BN_CLICKED(IDC_BUTTON_ABOUT, &CIPMonitorDlg::OnBnClickedButtonAbout)
+	ON_CBN_SELCHANGE(IDC_COMBO_NIC, &CIPMonitorDlg::OnCbnSelchangeComboNic)
+	ON_BN_CLICKED(IDC_BUTTON_SCAN, &CIPMonitorDlg::OnBnClickedButtonScan)
 	ON_BN_CLICKED(IDC_CHECK_SOURCE, &CIPMonitorDlg::OnBnClickedCheckSource)
 	ON_BN_CLICKED(IDC_CHECK_DESTINATION, &CIPMonitorDlg::OnBnClickedCheckDestination)
+	ON_BN_CLICKED(IDC_BUTTON_CLEAR, &CIPMonitorDlg::OnBnClickedButtonClear)
+	// message
+	ON_MESSAGE(WM_RECV, OnRecv)
 END_MESSAGE_MAP()
 
 
-// CIPMonitorDlg 消息处理程序
+// CIPMonitorDlg message handlers
 
 BOOL CIPMonitorDlg::OnInitDialog()
 {
-	CDHtmlDialog::OnInitDialog();
+	CDialog::OnInitDialog();
 
-	// 将“关于...”菜单项添加到系统菜单中。
+	// Set the icon for this dialog.  The framework does this automatically
+	//  when the application's main window is not a dialog
+	SetIcon(m_hIcon, TRUE);			// Set big icon
+	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-	// IDM_ABOUTBOX 必须在系统命令范围内。
-	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
-	ASSERT(IDM_ABOUTBOX < 0xF000);
+	// TODO: Add extra initialization here
+	CFont cfont;
+	cfont.CreatePointFont(100, _T("Arial"));
+	GetDlgItem(IDC_STATIC_TITLE)->SetFont(&cfont);
 
-	CMenu* pSysMenu = GetSystemMenu(FALSE);
-	if (pSysMenu != nullptr)
-	{
-		BOOL bNameValid;
-		CString strAboutMenu;
-		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
-		ASSERT(bNameValid);
-		if (!strAboutMenu.IsEmpty())
-		{
-			pSysMenu->AppendMenu(MF_SEPARATOR);
-			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
-		}
-	}
-
-	// 设置此对话框的图标。  当应用程序主窗口不是对话框时，框架将自动
-	//  执行此操作
-	SetIcon(m_hIcon, TRUE);			// 设置大图标
-	SetIcon(m_hIcon, FALSE);		// 设置小图标
-
-	// TODO: 在此添加额外的初始化代码
 	index = -1;
 	nic.initNIC();
-	vector<char*> al = nic.getAdapterList();
+	vector<char *> al = nic.getAdapterList();
 	int row = 0;
-
-	// display nic info
-	for (vector<char*>::const_iterator iter = al.begin(); iter != al.end(); ++iter)
+	for(vector<char *>::const_iterator iter = al.begin(); iter!=al.end(); ++iter)
 	{
 		m_CComboBox.InsertString(row, *iter);
 		++row;
@@ -133,44 +107,30 @@ BOOL CIPMonitorDlg::OnInitDialog()
 
 	//https://docs.microsoft.com/en-us/cpp/mfc/reference/clistctrl-class
 	//The leftmost column in a list view control must be left - aligned.
-	m_CListCtrl.InsertColumn(0, _T("Source"), LVCFMT_LEFT, 150, -1);
-	m_CListCtrl.InsertColumn(1, _T("Destination"), LVCFMT_LEFT, 150, -1);
-	m_CListCtrl.InsertColumn(2, _T("Protocol"), LVCFMT_LEFT, 90, -1);
-	m_CListCtrl.InsertColumn(3, _T("Packets"), LVCFMT_LEFT, 90, -1);
-
+	m_CListCtrl.InsertColumn(0, _T("Source"), LVCFMT_LEFT, 120, -1);
+    m_CListCtrl.InsertColumn(1, _T("Destination"), LVCFMT_LEFT, 120, -1);
+    m_CListCtrl.InsertColumn(2, _T("Protocol"), LVCFMT_LEFT, 70, -1);
+    m_CListCtrl.InsertColumn(3, _T("Packets"), LVCFMT_LEFT, 70, -1);
 	src_checked = m_CheckBoxSource.GetCheck();
 	dst_checked = m_CheckBoxDestination.GetCheck();
 
 	UpdateData(FALSE);
-	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-void CIPMonitorDlg::OnSysCommand(UINT nID, LPARAM lParam)
-{
-	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
-	{
-		CAboutDlg dlgAbout;
-		dlgAbout.DoModal();
-	}
-	else
-	{
-		CDHtmlDialog::OnSysCommand(nID, lParam);
-	}
-}
-
-// 如果向对话框添加最小化按钮，则需要下面的代码
-//  来绘制该图标。  对于使用文档/视图模型的 MFC 应用程序，
-//  这将由框架自动完成。
+// If you add a minimize button to your dialog, you will need the code below
+//  to draw the icon.  For MFC applications using the document/view model,
+//  this is automatically done for you by the framework.
 
 void CIPMonitorDlg::OnPaint()
 {
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // 用于绘制的设备上下文
+		CPaintDC dc(this); // device context for painting
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// 使图标在工作区矩形中居中
+		// Center icon in client rectangle
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
@@ -178,67 +138,39 @@ void CIPMonitorDlg::OnPaint()
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// 绘制图标
+		// Draw the icon
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
 	{
-		CDHtmlDialog::OnPaint();
+		CDialog::OnPaint();
 	}
 }
 
-//当用户拖动最小化窗口时系统调用此函数取得光标
-//显示。
+// The system calls this function to obtain the cursor to display while the user drags
+//  the minimized window.
 HCURSOR CIPMonitorDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-HRESULT CIPMonitorDlg::OnButtonScan(IHTMLElement* /*pElement*/)
+
+void CIPMonitorDlg::OnBnClickedButtonExit()
 {
-	if (-1 == index)
-		return -1;
-
-	if (!started)
-	{
-		started = true;
-
-		btnScanText = "Stop";
-		GetDlgItem(IDC_COMBO_NIC)->EnableWindow(FALSE);
-		m_CListCtrl.DeleteAllItems();
-
-		device.obtainDeviceList();
-		device.openAdapter(nic.getNICname());
-		string filter = "ip";
-		device.setFilter(filter.c_str());
-
-		hThreadrecv = AfxBeginThread(recvPacket, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
-	}
-	else
-	{
-		started = false;
-		btnScanText = "Scan";
-		GetDlgItem(IDC_COMBO_NIC)->EnableWindow(TRUE);
-	}
-	UpdateData(FALSE);
-	return S_OK;
+	// TODO: �ڴ����ӿؼ�֪ͨ�����������
+	CDialog::OnCancel();
 }
 
-HRESULT CIPMonitorDlg::OnButtonCancel(IHTMLElement* /*pElement*/)
+void CIPMonitorDlg::OnBnClickedButtonAbout()
 {
-	OnCancel();
-	return S_OK;
-}
-
-HRESULT CIPMonitorDlg::OnButtonAbout(IHTMLElement* /*pElement*/)
-{
+	// TODO: �ڴ����ӿؼ�֪ͨ�����������
 	CAboutDlg dlgAbout;
 	dlgAbout.DoModal();
-	return S_OK;
 }
 
-void CIPMonitorDlg::OnSelectChangeNic()
+void CIPMonitorDlg::OnCbnSelchangeComboNic()
 {
+	// TODO: �ڴ����ӿؼ�֪ͨ�����������
 	index = m_CComboBox.GetCurSel();
 	nic.selectNIC(index);
 	m_nic_ipaddress = CString(nic.getIPAddress());
@@ -249,11 +181,10 @@ void CIPMonitorDlg::OnSelectChangeNic()
 	m_nic_macaddress = CString(Common::mac2str(nic.getMacAddress()));
 	m_nic_gatewayipaddress = CString(nic.getGatewayIPAddress());
 	m_nic_gatewaymac = CString(Common::mac2str(nic.getGatewayMac()));
-
 	UpdateData(FALSE);
 }
 
-UINT CIPMonitorDlg::recvPacket(LPVOID lpParam)
+UINT CIPMonitorDlg::recvAll(LPVOID lpParam)
 {
 	CIPMonitorDlg *p = (CIPMonitorDlg *)lpParam;
 	pcap_t *adhandle = p->device.getHandle();
@@ -266,23 +197,22 @@ UINT CIPMonitorDlg::recvPacket(LPVOID lpParam)
 	PDU *pdu = &ip;
 	ef.SetMACDATA(pdu);
 
-	bool display = false;
-	/* Retrieve the packets */
-	while ((res = pcap_next_ex(adhandle, &header, &pkt_data)) >= 0)
+	bool display;
+    /* Retrieve the packets */
+    while((res = pcap_next_ex( adhandle, &header, &pkt_data)) >= 0)
 	{
-		if (!p->started) {
+		// exit loop
+		if (!p->started)
 			break;
-		}
 
-		if (res == 0)
-			/* Timeout elapsed */
-			continue;
+        if(res == 0)
+            /* Timeout elapsed */
+            continue;
 
 		ef.Read((BYTE *)pkt_data);
 		pip = dynamic_cast<IP *>(pdu);
-
 		if (p->src_checked == false && p->dst_checked == false) {
-			display = true;
+			display = 1;
 		}
 		else if (p->src_checked == true && p->dst_checked == false) {
 			display = p->local_ip == pip->getSourceaddress();
@@ -291,10 +221,9 @@ UINT CIPMonitorDlg::recvPacket(LPVOID lpParam)
 			display = p->local_ip == pip->getDestinationaddress();
 		}
 		else if (p->src_checked == true && p->dst_checked == true) {
-			display = p->local_ip == pip->getSourceaddress() || p->local_ip == pip->getSourceaddress();
+			display = p->local_ip == pip->getDestinationaddress() || p->local_ip == pip->getSourceaddress();
 		}
-
-		if (display)
+		if(display)
 		{
 			GlobalLock((HGLOBAL)&p);
 			p->srcip = pip->getSourceaddress();
@@ -302,11 +231,11 @@ UINT CIPMonitorDlg::recvPacket(LPVOID lpParam)
 			p->proto = pip->getProtocol();
 			AfxGetMainWnd()->SendMessage(WM_RECV, (WPARAM)p, 0);
 		}
-	}
-
-	if (res == -1) {
-		return -1;
-	}
+    }
+    
+    if(res == -1){
+        return -1;
+    }
 	return 0;
 }
 
@@ -314,36 +243,28 @@ LRESULT CIPMonitorDlg::OnRecv(WPARAM wParam, LPARAM lParam)
 {
 	CIPMonitorDlg *p = (CIPMonitorDlg *)wParam;
 
-	//char ipsrc[16];
-	//char ipdst[16];
-	//Common::dword2char(p->srcip, ipsrc);
-	//Common::dword2char(p->dstip, ipdst);
-	CString ipsrc(Common::dword2char(p->srcip));
-	CString ipdst(Common::dword2char(p->dstip));
+	char ipsrc[16], ipdes[16];
+	Common::dword2char(p->srcip, ipsrc);
+	Common::dword2char(p->dstip, ipdes);
 	CString proto(Common::GetProtocol(p->proto));
-
-	if (!ipdst) {
-		return 0;
-	}
-
-	int count = m_CListCtrl.GetItemCount();
-	for (int i = 0; i < count; i++)
-	{
-		if (ipsrc == m_CListCtrl.GetItemText(i, 0) &&
-			ipdst == m_CListCtrl.GetItemText(i, 1) &&
+    int count = m_CListCtrl.GetItemCount();
+    for (int i = 0; i < count; i++)
+    {
+		if (ipsrc == m_CListCtrl.GetItemText(i, 0) && 
+			ipdes == m_CListCtrl.GetItemText(i, 1) && 
 			proto == m_CListCtrl.GetItemText(i, 2))
-		{
-			int pcount = atoi((LPCTSTR)m_CListCtrl.GetItemText(i, 3));
-			CString pcountstr;
-			pcountstr.Format("%d", pcount + 1);
-			m_CListCtrl.SetItemText(i, 3, pcountstr);
-			UpdateData(FALSE);
-			return 0;
-		}
-	}
+        {
+            int pcount = atoi((LPCTSTR)m_CListCtrl.GetItemText(i,3));
+            CString pcountstr;
+            pcountstr.Format("%d", pcount+1);
+            m_CListCtrl.SetItemText(i, 3, pcountstr);
+            UpdateData(FALSE);
+            return 0;
+        }
+    }
 
 	m_CListCtrl.InsertItem(count, ipsrc);
-	m_CListCtrl.SetItemText(count, 1, ipdst);
+	m_CListCtrl.SetItemText(count, 1, ipdes);
 	m_CListCtrl.SetItemText(count, 2, proto);
 	m_CListCtrl.SetItemText(count, 3, CString("1"));
 
@@ -352,14 +273,48 @@ LRESULT CIPMonitorDlg::OnRecv(WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+void CIPMonitorDlg::OnBnClickedButtonScan()
+{
+	// TODO: �ڴ����ӿؼ�֪ͨ�����������
+	if(-1 == index)
+		return;
+
+	if (!started)
+    {
+        started = true;
+        GetDlgItem(IDC_BUTTON_SCAN)->SetWindowText("&Stop");
+        GetDlgItem(IDC_COMBO_NIC)->EnableWindow(FALSE);
+        m_CListCtrl.DeleteAllItems();
+
+		device.obtainDeviceList();
+		device.openAdapter(nic.getNICname());
+		string filter = "ip";
+		device.setFilter(filter.c_str());
+
+		hThreadrecv = AfxBeginThread(recvAll, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+    }
+    else
+    {
+        started = false;
+        GetDlgItem(IDC_BUTTON_SCAN)->SetWindowText("&Scan");
+        GetDlgItem(IDC_COMBO_NIC)->EnableWindow(TRUE);
+    }
+}
 void CIPMonitorDlg::OnBnClickedCheckSource()
 {
-	// TODO: 在此添加控件通知处理程序代码
+	// TODO: �ڴ����ӿؼ�֪ͨ�����������
 	src_checked = m_CheckBoxSource.GetCheck();
 }
 
 void CIPMonitorDlg::OnBnClickedCheckDestination()
 {
-	// TODO: 在此添加控件通知处理程序代码
+	// TODO: �ڴ����ӿؼ�֪ͨ�����������
 	dst_checked = m_CheckBoxDestination.GetCheck();
+}
+
+
+void CIPMonitorDlg::OnBnClickedButtonClear()
+{
+	// TODO: �ڴ����ӿؼ�֪ͨ�����������
+	m_CListCtrl.DeleteAllItems();
 }

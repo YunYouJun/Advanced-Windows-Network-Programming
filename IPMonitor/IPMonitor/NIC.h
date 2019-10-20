@@ -2,6 +2,7 @@
 
 #include "Common.h"
 
+// network interface controller
 class NIC
 {
 private:
@@ -10,14 +11,13 @@ private:
 public:
 	~NIC();
 	int initNIC();
-	vector<char*> getAdapterList();
+	vector<char *> getAdapterList();
 	void selectNIC(int index);
-	char* getNICname() const;
-	char* getNICdescription() const;
-	char* getIPAddress() const;
-	char* getSubnetMask() const;
-	BYTE* getMacAddress() const;
-	char* getGatewayIPAddress() const;
-	BYTE* getGatewayMac() const;
+	char *getNICname() const;
+	char *getNICdescription() const;
+	char *getIPAddress() const;
+	char *getSubnetMask() const;
+	BYTE *getMacAddress() const;
+	char *getGatewayIPAddress() const;
+	BYTE *getGatewayMac() const;
 };
-
