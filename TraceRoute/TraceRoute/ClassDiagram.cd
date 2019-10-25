@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Common">
+    <Position X="0.5" Y="8.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>IAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAA=</HashCode>
+      <FileName>Common.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Device">
+    <Position X="3" Y="7.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAAAAAAAAAAGAAEAACgAAAAEAAAAAAAAEAA=</HashCode>
+      <FileName>Device.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EthernetFrame">
+    <Position X="5.75" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAABgAgQCIAAAAAAQAAkQAACAAAAAAAAAAkAiAA=</HashCode>
+      <FileName>EthernetFrame.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="m_MACDATA" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="ICMP">
+    <Position X="3" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CoEQKAAAAAAUAAAAAKQAAAAggRAAAAQgAAAAQAEAAAA=</HashCode>
+      <FileName>ICMP.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="IP">
+    <Position X="0.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAIAwQAIBAAQgAQADAAEQJCg4VQSBABQAAAAAQEIAIE=</HashCode>
+      <FileName>IP.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NIC">
+    <Position X="5.75" Y="4.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AIAAAACAAIAAAAAAAAAMAAABAiQAkAIAAgAAAAAAAAA=</HashCode>
+      <FileName>NIC.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PDU">
+    <Position X="3" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>PDU.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CTraceRouteDlg">
+    <Position X="8.25" Y="0.5" Width="1.75" />
+    <NestedTypes>
+      <Enum Name="CTraceRouteDlg::__unnamed_enum_0008_1" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>TraceRouteDlg.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>mACIgCkCAgCQAAAAABAEAiAFAACCgIYEAAAAAIARBIA=</HashCode>
+      <FileName>TraceRouteDlg.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="nic" />
+      <Field Name="device" />
+    </ShowAsAssociation>
+  </Class>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>
