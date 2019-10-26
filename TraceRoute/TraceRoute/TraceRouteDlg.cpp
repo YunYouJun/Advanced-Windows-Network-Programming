@@ -379,7 +379,7 @@ void CTraceRouteDlg::OnBnClickedButtonTrace()
 
 		hThread = AfxBeginThread(sendAndRecv, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 
-		BYTE buffer[106];
+		BYTE buffer[106];	// 14(ethernet header) + 92
 		ttl = 1;
 		icmpRequest(buffer, ttl);
 		device.sendPacket(buffer);
@@ -407,7 +407,7 @@ void CTraceRouteDlg::icmpRequest(BYTE *buffer, BYTE ttl)
 	//ip header
 	icmp.setVersionIHL(0x45);
 	icmp.setDifferentiatedServices(0);
-	icmp.setTotallength(htons(92));
+	icmp.setTotallength(htons(92));	// 20(IP header) + 8(ICMP header) + 64(data max)
 	icmp.setIdentification(htons(ICMP_REQUEST_ID));
 	icmp.setUnusedDFMFFragmentoffset(0);
 	icmp.setTimetolive(ttl);
