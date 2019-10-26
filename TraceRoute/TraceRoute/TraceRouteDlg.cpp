@@ -232,7 +232,7 @@ UINT CTraceRouteDlg::sendAndRecv(LPVOID lpParam)
 		GetLocalTime(&p->timerecv);
 		p->timesub = 1000 * (p->timerecv.wSecond - p->timesend.wSecond) + (p->timerecv.wMilliseconds - p->timesend.wMilliseconds);
 		// if wait time more than 3s, judge time out, ++ttl, resend icmp request packet
-		if (p->timesub > 3000)
+		if (p->timesub > 3000 && (p->ttl + 1) < 256)
 		{
 			p->icmpRequest(buffer, ++p->ttl);
 			p->device.sendPacket(buffer);
@@ -277,7 +277,7 @@ UINT CTraceRouteDlg::sendAndRecv(LPVOID lpParam)
 				// icmp error datagram have error ip header(20) and icmp header(8)
 				// 66 = 6+6+2(ethernet header) + 20(IP header) + 20(error ip header) + 8(error icmp header) + 1(type) + 1(code) + 2(checksum)  id:2 seq:2 data:4
 				memcpy(&id, pkt_data + 66, 2);
-				if (id == htons(ICMP_REQUEST_ID))
+				if (id == htons(ICMP_REQUEST_ID) && (p->ttl + 1) < 256)
 				{
 					GetLocalTime(&p->timerecv);
 					p->timesub = 1000 * (p->timerecv.wSecond - p->timesend.wSecond) + (p->timerecv.wMilliseconds - p->timesend.wMilliseconds);
