@@ -217,6 +217,7 @@
     <ResourceCompile Include="PortScanner.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="res\PortScanner.rc2" />
   </ItemGroup>
   <ItemGroup>

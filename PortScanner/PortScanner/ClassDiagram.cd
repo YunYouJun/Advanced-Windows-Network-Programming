@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CPortScannerDlg">
+    <Position X="7.5" Y="0.5" Width="1.75" />
+    <NestedTypes>
+      <Enum Name="CPortScannerDlg::__unnamed_enum_0004_1" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>PortScannerDlg.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>EICgAAkKAoCAQAEABBAEgyAEAgCACIaAEARAgAURAAA=</HashCode>
+      <FileName>PortScannerDlg.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="device" />
+      <Field Name="nic" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Common">
+    <Position X="10" Y="3.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>IAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAA=</HashCode>
+      <FileName>Common.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Device">
+    <Position X="10" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAAAAAAAAAAGAAEAACgAAAAEAAAAAAAAEAA=</HashCode>
+      <FileName>Device.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EthernetFrame">
+    <Position X="1" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAABgAgQCIAAAAAAQAAkQAACAAAAAAAAAAkAiAA=</HashCode>
+      <FileName>EthernetFrame.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="m_MACDATA" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="IP">
+    <Position X="5.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAIAwQAIBAAQgAQADAAEQJCg4VQSBABQAAAAAQEIAIE=</HashCode>
+      <FileName>IP.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NIC">
+    <Position X="10" Y="5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AIAAAACAAIAAAAAAAAAMAAABAiQAkAIAAgAAAAAAAAA=</HashCode>
+      <FileName>NIC.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PDU">
+    <Position X="3" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>PDU.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TCP">
+    <Position X="3" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>CAAAIAAAwBEkAgKAAAAAgAUggAAkSBQCgAAAAAEIiAA=</HashCode>
+      <FileName>TCP.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>
