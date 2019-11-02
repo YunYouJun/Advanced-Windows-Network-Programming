@@ -16,12 +16,6 @@ private:
 public:
 	TCP(void) { ; }
 	~TCP(void) { ; }
-	virtual int GetTotalLength() const { return 0; }
-	virtual void SetTotalLength(int length) { ; }
-	virtual int GetHeaderLength() const { return 0; }
-	virtual void SetHeaderLength(int length) { ; }
-	virtual void PrintHeader() const { ; }
-	virtual void Print() const { ; }
 	virtual BOOL Write(BYTE *link);
 	virtual BOOL Read(BYTE *link);
 
