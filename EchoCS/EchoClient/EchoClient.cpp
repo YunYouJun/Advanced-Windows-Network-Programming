@@ -18,6 +18,9 @@ int main(int argc, char *argv[])
 		cout << "Please input target ip:" << endl;
 		cin >> ip;
 	}
+	else if (argc == 2) {
+		ip = argv[1];
+	}
 	else if (argc == 3) {
 		ip = argv[1];
 		port = argv[2];
