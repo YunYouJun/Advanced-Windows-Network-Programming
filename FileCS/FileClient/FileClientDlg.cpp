@@ -218,7 +218,7 @@ void CFileClientDlg::OnBnClickedRequestBtn()
 				m_savepath = m_filepath;
 			}
 			fstream fs;
-			// C++ open 打开文件（含打开模式一览表） http://c.biancheng.net/view/294.html
+			// C++ open 打开文件（含打开模式一览表）http://c.biancheng.net/view/294.html
 			fs.open(m_savepath, ios::app|ios::binary);
 
 			int fileRecv = 0;
@@ -250,6 +250,8 @@ void CFileClientDlg::OnBnClickedRequestBtn()
 		GetDlgItem(IDC_CHECK_PRINT)->EnableWindow(TRUE);
 		GetDlgItem(IDC_EDIT_SAVEPATH)->EnableWindow(TRUE);
 	//}
+
+		fileClient.Close();
 }
 
 
