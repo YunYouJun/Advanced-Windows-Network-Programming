@@ -186,7 +186,8 @@
   <ItemGroup>
     <ClInclude Include="..\CBlockingSocket.h" />
     <ClInclude Include="..\Common.h" />
-    <ClInclude Include="..\UdpSocket.hpp" />
+    <ClInclude Include="..\Message.h" />
+    <ClInclude Include="..\UdpSocket.h" />
     <ClInclude Include="FileClient.h" />
     <ClInclude Include="FileClientDlg.h" />
     <ClInclude Include="Resource.h" />
@@ -195,6 +196,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\CBlockingSocket.cpp" />
+    <ClCompile Include="..\Message.cpp" />
+    <ClCompile Include="..\UdpSocket.cpp" />
     <ClCompile Include="FileClient.cpp" />
     <ClCompile Include="FileClientDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -209,6 +212,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="res\FileClient.rc2" />
   </ItemGroup>
   <ItemGroup>

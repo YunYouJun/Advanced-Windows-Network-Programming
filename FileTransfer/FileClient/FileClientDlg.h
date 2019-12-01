@@ -3,10 +3,13 @@
 //
 
 #pragma once
-#include "../CBlockingSocket.h"
-#include "../UdpSocket.hpp"
 #include "../Common.h"
-
+#include "../CBlockingSocket.h"
+#include "../UdpSocket.h"
+#include "../Message.h"
+#include <process.h>
+#include <windows.h>
+#include <string>
 // CFileClientDlg 对话框
 class CFileClientDlg : public CDialogEx
 {
@@ -41,7 +44,7 @@ public:
 
 	CString m_ip;
 	CIPAddressCtrl m_ip_ctrl;
-	CString m_port;
+	int m_port;
 	CString m_filepath;
 	CString m_content;
 	CString m_savepath;

@@ -174,48 +174,150 @@ void CFileClientDlg::OnBnClickedCancel()
 }
 
 
+BOOL multi_thread = false;
+
+struct downloadParam {
+    CBlockingSocket ConnectSocket;
+    char *filename;
+    char *savepath;
+    CFileClientDlg *dlg;
+};
+
 unsigned __stdcall downloadFile(LPVOID pArguments) {
-	downloadInfo *curFile = (downloadInfo*)pArguments;
-	downloadInfo cf = *curFile;
+    downloadParam *dp = (downloadParam *)pArguments;
+    downloadParam da = *dp;
 
-	string ip = inet_ntoa(cf.client.sin_addr);
-	int client_tcp_port = ntohs(cf.client.sin_port);
-	int client_udp_port = client_tcp_port + 1;
+    CBlockingSocket ConnectSocket = da.ConnectSocket;
+    char *filename;
+    char *savepath;
+    filename = da.filename;
+    savepath = da.savepath;
 
-	// udp socket
-	UdpSocket udpSock;
-	udpSock.Socket();
-	udpSock.Bind(ip, client_udp_port);
+    struct sockaddr_in c;
+    socklen_t cLen = sizeof(c);
+    getsockname(ConnectSocket.m_socket, (struct sockaddr*) &c, &cLen);
+    struct sockaddr_in s;
+    socklen_t sLen = sizeof(s);
+    getpeername(ConnectSocket.m_socket, (struct sockaddr*) &s, &sLen);
 
-	// client get port
-	cf.client.sin_port += 1;
+    // recv by udp
+    UdpSocket udpSock;
+    udpSock.Open();
+    int client_tcp_port = htons(c.sin_port);
+    int client_udp_port = client_tcp_port + 1;
+    int server_tcp_port = htons(s.sin_port);
+    int server_udp_port = server_tcp_port - 1;
+    udpSock.Bind(NULL, client_udp_port);
 
-	// init udpServer info
-	struct sockaddr_in udpServer;
-	// Set up the sockaddr structure
-	udpServer.sin_family = AF_INET;
-	udpServer.sin_addr.s_addr = inet_addr(ip.c_str());
-	udpServer.sin_port = htons(UDP_SRV_PORT);
+    // set udp_server_addr
+    sockaddr_in udp_server_addr;
+    udp_server_addr.sin_family = AF_INET;
+    udp_server_addr.sin_port = htons(server_udp_port);
+    udp_server_addr.sin_addr.S_un.S_addr = s.sin_addr.S_un.S_addr;
 
-	int pos = cf.filename.find_last_of('/');
-	string filename(cf.filename.substr(pos + 1));
-	fstream fs;
-	// C++ open 打开文件（含打开模式一览表）http://c.biancheng.net/view/294.html
-	fs.open("./Download/" + filename, ios::app | ios::binary);
-	int fileRecv = 0;
 
-	char buffer[1500];
-	while (fileRecv != -1) {
-		fileRecv = udpSock.Recv(buffer, &udpServer);
-		fs.write(buffer, fileRecv);
-	}
 
-	fs.close();
-	//m_content = m_content + "\r\n" + "Download " + cf.filename + " successfully.";
-	//UpdateData(FALSE);
+    // send file name & get file size
+    Message msg;
+    char buffer[MAX_COMMAND_SIZE] = { 0 };
+    msg.setType(COMMAND_DOWNLOAD);
+    msg.setSize(strlen(filename));
+    msg.setData(filename);
+    msg.write(buffer);
+    ConnectSocket.Send(buffer, MSG_HEADER_LENGTH + strlen(filename));
 
-	udpSock.Close();
-	return 0;
+    Message size_msg;
+    ConnectSocket.Recv(buffer, MSG_HEADER_LENGTH);
+    size_msg.read(buffer);
+    int filelen = -1;
+    if (size_msg.getType() == FILE_DATA_SIZE) {
+        filelen = size_msg.getSize();
+    }
+    if (filelen == -1) {
+        da.dlg->m_content = "  File " + CString(filename) + " is not existed.";
+        da.dlg->UpdateData(FALSE);
+    }
+    else {
+        fstream fs;
+        fs.open(savepath, ios::out | ios::binary);
+        fs.close();
+        fs.open(savepath, ios::app | ios::binary);
+
+        int percent = 0;
+        int block = filelen / MAX_DATA_SIZE + 1;
+        char recvBuf[MAX_BUF_SIZE] = { 0 };
+        unsigned long lastSeq = 0;
+        int filerecv = 0;
+        da.dlg->m_content = "  Receiving file: " + CString(filename) + CString(filename) + " B）";
+        //da.dlg->UpdateData(FALSE);
+        while (1)
+        {
+            int sLen = sizeof(sockaddr);
+            filerecv = recvfrom(udpSock.m_socket, recvBuf, MAX_BUF_SIZE, 0, (sockaddr*)&udp_server_addr, &sLen);
+            if (filerecv == -1) {
+                break;
+            }
+            // check
+            Message file_msg;
+            file_msg.read(recvBuf);
+            if (file_msg.getChecksum() != Common::CalculateCheckSum(file_msg.getData(), file_msg.getSize())) {
+                da.dlg->m_content = "    Checksum is wrong, drop it.";
+                //da.dlg->UpdateData(FALSE);
+                continue;
+            }
+
+            // send ack
+            Message data_ack_msg;
+            data_ack_msg.setType(FILE_DATA_ACK);
+            char bufAck[MSG_HEADER_LENGTH] = { 0 };
+            data_ack_msg.write(bufAck);
+
+            // get it before drop it
+            if (lastSeq == file_msg.getSeq()) {
+                //cout << "  Got it before, drop it." << endl;
+                //cout << "    Send ack back to the server." << endl;
+                sendto(udpSock.m_socket, bufAck, MSG_HEADER_LENGTH, 0, (sockaddr*)&udp_server_addr, sizeof(sockaddr));
+                continue;
+            }
+            fs.write(file_msg.getData(), file_msg.getSize());
+            lastSeq = file_msg.getSeq();
+            //cout << "    Send ack back to the server." << endl;
+            sendto(udpSock.m_socket, bufAck, MSG_HEADER_LENGTH, 0, (sockaddr*)&udp_server_addr, sizeof(sockaddr));
+            //cout << "    UDP: Received " << filerecv << " B, data: " << file_msg.getSize() << " B." << endl;
+
+
+            if (!multi_thread) {
+                // set console color
+                HANDLE  hStdOutHandle;
+                WORD    wOldColorAttrs;
+                CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+                hStdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+                GetConsoleScreenBufferInfo(hStdOutHandle, &csbiInfo);
+                wOldColorAttrs = csbiInfo.wAttributes;
+
+                // print progress bar
+                percent = 100 * file_msg.getSeq() / block;
+                if (percent == 100) {
+                    SetConsoleTextAttribute(hStdOutHandle, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+                    Common::progress_bar(percent);
+                    SetConsoleTextAttribute(hStdOutHandle, wOldColorAttrs);
+                }
+                else {
+                    Common::progress_bar(percent);
+                }
+            }
+
+            // over
+            if (file_msg.getType() == FILE_DATA_END) {
+                da.dlg->m_content = "  Download file " + CString(filename) + " completed.";
+                //da.dlg->UpdateData(FALSE);
+                break;
+            }
+        }
+        fs.close();
+    }
+    udpSock.Close();
+    return 0;
 }
 
 void CFileClientDlg::OnBnClickedRequestBtn()
@@ -239,36 +341,35 @@ void CFileClientDlg::OnBnClickedRequestBtn()
 		GetDlgItem(IDC_EDIT_FILEPATH)->EnableWindow(FALSE);
 		GetDlgItem(IDC_EDIT_SAVEPATH)->EnableWindow(FALSE);
 
-		fileClient(m_ip, m_port);
-		fileClient.Open();
-		fileClient.setSendRecvBuffer(MAX_BUF_SIZE);
-		fileClient.Connect();
-		fileClient.Send(m_filepath, strlen(m_filepath));
-
+        CBlockingSocket::Initialize();
+        // init socket
+        USES_CONVERSION;
+        char *ip = T2A(m_ip.GetBuffer(0));
+        m_ip.ReleaseBuffer();
+        CBlockingSocket ConnectSocket(ip, m_port);
+        ConnectSocket.Open();
+        ConnectSocket.setSendRecvBuffer(MAX_BUF_SIZE);
+        if (!ConnectSocket.Connect()) {
+            cout << "Connect failed" << endl;
+        }
 		
 		if (m_savepath == "") {
-			m_savepath = m_filepath;
+			m_savepath = "download_" + m_filepath;
 		}
-		
-		// get local tcp socket port
-		struct sockaddr_in c;
-		socklen_t cLen = sizeof(c);
-		getsockname(fileClient.m_socket, (struct sockaddr*) &c, &cLen);
 
-		int fileRecv = 0;
-		while (fileRecv != -1) {
-			fileRecv = fileClient.Recv(buffer, sizeof(buffer));
-			
-			string cur_filename = buffer;
-			struct downloadInfo curFile = { c, cur_filename };
-
-			HANDLE hThread;
-			unsigned threadID;
-			hThread = (HANDLE)_beginthreadex(NULL, 0, &downloadFile, &curFile, 0, &threadID);
-
-			m_content = m_content + "Begin download " + cur_filename.c_str() + " ..." + "\r\n";
-			UpdateData(FALSE);
-		}
+        char *filepath = T2A(m_filepath.GetBuffer(0));
+        m_filepath.ReleaseBuffer();
+        char *savepath = T2A(m_savepath.GetBuffer(0));
+        m_savepath.ReleaseBuffer();
+        downloadParam dp = {
+            ConnectSocket,
+            filepath,
+            savepath,
+            this
+        };
+        HANDLE hThread;
+        unsigned threadID;
+        hThread = (HANDLE)_beginthreadex(NULL, 0, &downloadFile, &dp, 0, &threadID);
 	}
 	//else {
 		m_started = false;
@@ -278,6 +379,4 @@ void CFileClientDlg::OnBnClickedRequestBtn()
 		GetDlgItem(IDC_EDIT_FILEPATH)->EnableWindow(TRUE);
 		GetDlgItem(IDC_EDIT_SAVEPATH)->EnableWindow(TRUE);
 	//}
-
-		fileClient.Close();
 }
