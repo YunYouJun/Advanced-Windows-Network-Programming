@@ -79,7 +79,6 @@ unsigned __stdcall tcpEchod(LPVOID pArguments)
 
             // for select
             fd_set fdread;
-            int ret;
             timeval tv;
             tv.tv_sec = 0;
             tv.tv_usec = TIMEOUT_RESEND;
@@ -88,7 +87,6 @@ unsigned __stdcall tcpEchod(LPVOID pArguments)
 			fs.open(filename, ios::in | ios::binary);
 
             char bufSize[MSG_HEADER_LENGTH + MAX_COMMAND_SIZE] = { 0 };
-            char fileSize[MAX_COMMAND_SIZE];
             Message reply_msg;
             int filelen = -1;
             reply_msg.setType(FILE_DATA_SIZE);
