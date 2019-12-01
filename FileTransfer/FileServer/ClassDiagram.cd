@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CBlockingSocket">
+    <Position X="11.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>CIAAgACAAAgAIUAAAEAAAIAAAIBAAAAJAAAAAECAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\CBlockingSocket.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Common">
+    <Position X="9.5" Y="3.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\Common.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Message">
+    <Position X="6" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAEQIAAAAIAAAAgAQOQACAACgRAAAAAAAQAAZAAAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\Message.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="m_MessageHeader" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="UdpSocket">
+    <Position X="7.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAAgAAAAAAAIAAAAAAAAAAAAABAAAAABAAAQACAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\UdpSocket.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="ListenSocket">
+    <Position X="9.5" Y="5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAEAAAEAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FileServer.cpp</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="tcpSock" />
+      <Field Name="udpSock" />
+    </ShowAsAssociation>
+  </Struct>
+  <Struct Name="MsgHeader">
+    <Position X="9.5" Y="1.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAAgAAgAAQAAAAAAAIAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\Message.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Typedef Name="MessageHeader" Collapsed="true">
+    <Position X="9.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\Message.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>

@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CBlockingSocket">
+    <Position X="2.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAAgACAAAgAIUAAAEAAAIAAAIBAAAAJAAAAAECAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\CBlockingSocket.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Common">
+    <Position X="4.25" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\Common.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Message">
+    <Position X="6.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAEQIAAAAIAAAAgAQOQACAACgRAAAAAAAQAAZAAAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\Message.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UdpSocket">
+    <Position X="4.25" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>CIAAgAAAAAAAIAAAAAAAAAAAAABAAAAABAAAQACAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\UdpSocket.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="MsgHeader">
+    <Position X="0.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAAgAAgAAQAAAAAAAIAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\Message.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Typedef Name="MessageHeader" Collapsed="true">
+    <Position X="0.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\YunYouJun\source\repos\Advanced-Windows-Network-Programming\FileTransfer\Message.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>

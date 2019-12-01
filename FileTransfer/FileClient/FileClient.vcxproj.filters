@@ -33,10 +33,13 @@
     <ClInclude Include="..\CBlockingSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\UdpSocket.hpp">
+    <ClInclude Include="..\Common.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common.h">
+    <ClInclude Include="..\UdpSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Message.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,6 +56,12 @@
     <ClCompile Include="..\CBlockingSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\UdpSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Message.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FileClient.rc">
@@ -64,6 +73,7 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="ClassDiagram.cd" />
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\FileClient.ico">

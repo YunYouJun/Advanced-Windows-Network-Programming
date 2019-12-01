@@ -149,8 +149,8 @@ unsigned __stdcall downloadFile(LPVOID pArguments) {
 
 int main(int argc, char *argv[])
 {
-	argc = 2;
-	argv[1] = (char*)"10.64.132.147";
+	//argc = 2;
+	//argv[1] = (char*)"10.64.132.147";
 	char *ip = argv[1];
 
 	if (argc != 2)
