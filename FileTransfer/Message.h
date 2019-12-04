@@ -2,24 +2,24 @@
 
 #include <string.h>
 
-#define COMMAND_DIR 1
-#define COMMAND_DOWNLOAD 2
-#define COMMAND_EXIT 3
-#define COMMAND_TEST 4
-#define FILE_DATA_SIZE 5
-#define FILE_DATA_REPLY 6
-#define FILE_DATA_ACK 7
-#define FILE_DATA_END 8
+#define COMMAND_DIR 1	// display file list
+#define COMMAND_DOWNLOAD 2	// download file
+#define COMMAND_EXIT 3	// exit client
+#define COMMAND_TEST 4	// do test
+#define FILE_DATA_SIZE 5	// msg content is file size, Data field is Null, and the Size field will store the size of file (instead data size)
+#define FILE_DATA_REPLY 6	// the file data of server sending
+#define FILE_DATA_ACK 7	// this msg is ack
+#define FILE_DATA_END 8	// this is the end of file
 
-#define MSG_HEADER_LENGTH 19
-#define MAX_COMMAND_SIZE 256
-#define MAX_BUF_SIZE 65535 - 20 - 8
-#define MAX_DATA_SIZE (MAX_BUF_SIZE - MSG_HEADER_LENGTH)
+#define MSG_HEADER_LENGTH 19	// 1 + 4 + 4 + 4 + 4 + 2
+#define MAX_COMMAND_SIZE 256	// enough
+#define MAX_BUF_SIZE 65535 - 20 - 8	// MAX IP Length is 65535, we need minus IP header 20 and UDP header 8
+#define MAX_DATA_SIZE (MAX_BUF_SIZE - MSG_HEADER_LENGTH)	// then minus custom msg header 19 is our max data size
 
 #define MAX_SEQ 15 // max seq and the max size of send window
 #define NR_BUFS ((MAX_SEQ+1)/2) // half of seq, the max size of recv window
 
-#define TIMEOUT_RESEND 40 // 40ms
+#define TIMEOUT_RESEND 40 // 40ms the time for resend
 
 // header is 12 bytes
 typedef struct MsgHeader {
@@ -50,7 +50,7 @@ public:
 	void setData(char *Data);
     void setChecksum(unsigned short checksum);
 
-	// Ö»ÐèÒª·µ»Ø³ÉÔ±±äÁ¿µÄ³ÉÔ±º¯Êý¾Í±»ÉùÃ÷Îª const ÀàÐÍ
+	// Ö»ï¿½ï¿½Òªï¿½ï¿½ï¿½Ø³ï¿½Ô±ï¿½ï¿½ï¿½ï¿½ï¿½Ä³ï¿½Ô±ï¿½ï¿½ï¿½ï¿½ï¿½Í±ï¿½ï¿½ï¿½ï¿½ï¿½Îª const ï¿½ï¿½ï¿½ï¿½
 	char getType() const;
 	unsigned int getSeq() const;
 	unsigned int getAck() const;
