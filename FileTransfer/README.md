@@ -1,10 +1,10 @@
-## Task
+# 说明
 
-- [ ] 1. The first task is to implement a 100% reliable protocol for file transfer (ie: UDP DATA packets) between the server and the client with a simple error-control protocol (ie: stop and wait protocol ). 
-- [ ] 2. Client connect from a random unprivileged port ( 8026) to the servers command port (2121) and sends command to Request a file name list and Retrieve ( download ) the file from server over TCP. 
-- [ ] 3. The server would use port n-1 to send file data to the client port (n+1) over UDP. 
-- [ ] 4. The server should use the select I/O model to manage the incoming connections from the client over TCP. 
-- [ ] 5. The server should be a concurrent server that can provide downloading file service simultaneously for Server Client 20 21 1026 1027 1 Server Client 2020 2121 8026 8027 1 2 3 4 TCP UDP UDP TCP multi-clients (please write test cases in your report).
-- [ ]  6. The Server should display relevant information about the current connection and downloading status. 
-- [ ]  7. The client should use multi-thread to download files. 
-- [ ]  8. The client should display relevant information about the current connection and downloading status (e.g. the downloading process information). 
+次份代码实现了老师的基本要求，和测试了大文件之类的。
+
+不过 UDP 并发方面，我服务端只用了 2120 端口（因为看 pdf 最开始规定的服务端一个端口），客户端使用的是发起的是随机端口（可以开多个）。
+所以并发实际是有点问题的，同时开多个客户端分别传小文件，实际还是分开在传，问题体现不出来。如果同时传多个大文件就体现出来了。
+因为 UDP 是无连接的，服务端没有办法区分收到的是哪个线程里的 ACK。
+结果课上老师说了允许服务端也开多个端口，那就继续减一呗。
+把 UDP 服务端也变成每次绑定新端口就可以了，实现真正的 UDP 并发。但是吧，我已经不想再打开这份代码了，所以看到的同学自己记得改一下吧。
+（也欢迎 PR！）
