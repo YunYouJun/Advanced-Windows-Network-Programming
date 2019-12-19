@@ -1,88 +1,56 @@
 #include "stdafx.h"
 #include "ClientSocket.h"
 
-ClientSocket *ClientSocket::instance = NULL;
-
-ClientSocket::ClientSocket() {}
+ClientSocket::ClientSocket() {
+    m_tcp_socket = INVALID_SOCKET;
+}
 ClientSocket::~ClientSocket() {}
 
-ClientSocket* ClientSocket::getInstace() {
-    if (!instance) {
-        instance = new ClientSocket();
-    }
-    return instance;
-}
-
-bool ClientSocket::Open(SOCKET &Socket, const char *ip, const char*port, int type)
+bool ClientSocket::Initialize()
 {
-    int iResult;
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
-
     WSADATA wsaData;
-    WORD wversionRequested = MAKEWORD(2, 2);
-    if (WSAStartup(wversionRequested, &wsaData) != 0)
-    {
+    int iResult;
+
+    // Initialize Winsock
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != 0) {
+        AfxMessageBox(L"Error at WSAStartup(): %d\n", iResult);
         return FALSE;
-    }
-
-    if (type == TCP)
-    {
-        if ((Socket = socket(AF_INET, SOCK_STREAM, 0)) == SOCKET_ERROR)
-        {
-            WSACleanup();
-            return FALSE;
-        }
-        hints.ai_family = AF_INET;
-        hints.ai_socktype = SOCK_STREAM;
-        hints.ai_protocol = IPPROTO_TCP;
-        iResult = getaddrinfo(ip, port, &hints, &RTSPServerInfo);
-        if (iResult != 0)
-        {
-            return FALSE;
-        }
-    }
-    if (type == UDP)
-    {
-        if ((Socket = socket(AF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
-        {
-            WSACleanup();
-            return FALSE;
-        }
-        hints.ai_family = AF_INET;
-        hints.ai_socktype = SOCK_DGRAM;
-        hints.ai_protocol = IPPROTO_UDP;
-        iResult = getaddrinfo(ip, port, &hints, &RTPServerInfo);
-
-        memcpy(m_rtp_server_ip, ip, 16);
-        memcpy(m_rtp_server_port, port, sizeof(port));
-
-        if (iResult != 0)
-        {
-            return FALSE;
-        }
     }
     return TRUE;
 }
 
-bool ClientSocket::Bind(SOCKET &Socket, const char*port)
+bool ClientSocket::Open()
 {
-    char name[128] = { 0 };
-    gethostname(name, sizeof(name));
-    int iResult;
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_DGRAM;
-    hints.ai_protocol = IPPROTO_UDP;
-    iResult = getaddrinfo(name, port, &hints, &RTPClientInfo);
-    if (iResult != 0)
-    {
+    // Create a SOCKET for the server to listen for client connections
+    m_tcp_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (m_tcp_socket == INVALID_SOCKET) {
+        AfxMessageBox(L"Error at socket(): %ld\n", WSAGetLastError());
+        WSACleanup();
         return FALSE;
     }
-    if (bind(Socket, RTPClientInfo->ai_addr, RTPClientInfo->ai_addrlen) != 0)
-    {
-        closesocket(Socket);
+
+    return TRUE;
+}
+
+bool ClientSocket::Bind(const char *ip, u_short port)
+{
+    // server bind & client random
+    sockaddr_in service;
+    service.sin_family = AF_INET;
+
+    // to fix
+    //service.sin_addr.s_addr = inet_addr(ip);
+    //service.sin_port = htons(port);
+    // connect
+
+    // Setup the TCP listening socket
+    int iResult;
+    iResult = bind(m_tcp_socket, (sockaddr *)&service, sizeof(service));
+    if (iResult == SOCKET_ERROR) {
+        printf("bind failed with error: %u\n", WSAGetLastError());
+        closesocket(m_tcp_socket);
         WSACleanup();
         return FALSE;
     }
@@ -112,7 +80,7 @@ bool ClientSocket::Send(SOCKET &Socket, const char*sendbuf, int sendbuflen)
     return TRUE;
 }
 
-string ClientSocket::Recv(SOCKET &Socket)
+char* ClientSocket::Recv(SOCKET &Socket)
 {
     int size;
     char recvbuf[65535];
@@ -132,7 +100,7 @@ string ClientSocket::Recv(SOCKET &Socket)
             // interleaved rtsp
             char temp[65475];
             memset(temp, 0, sizeof(temp));
-            for (size_t i = 0; i < size - 60; i++)
+            for (int i = 0; i < size - 60; i++)
             {
                 temp[i] = recvbuf[i + 60];
             }
@@ -140,6 +108,16 @@ string ClientSocket::Recv(SOCKET &Socket)
         }
         return recvbuf;
     }
+}
+
+int ClientSocket::RecvRTP(SOCKET &Socket, char* recvbuf)
+{
+    memset(recvbuf, 0, sizeof(recvbuf));
+    int recv_size = recv(Socket, recvbuf, sizeof(recvbuf), 0);
+    //if (recv_size == SOCKET_ERROR) {
+    //    return "Recv RTP Error";
+    //}
+    return recv_size;
 }
 
 int ClientSocket::RecvFrom(SOCKET &Socket, struct addrinfo *serverInfo, char *recvBuf, int revBuflen)
@@ -150,7 +128,6 @@ int ClientSocket::RecvFrom(SOCKET &Socket, struct addrinfo *serverInfo, char *re
     server_info.sin_port = atoi(m_rtp_server_port);
 
     int ClientBytesRecv = recvfrom(Socket, recvBuf, revBuflen, 0, (SOCKADDR *)&server_info, &size);
-
     if (ClientBytesRecv == SOCKET_ERROR) {
         return -1;
     }

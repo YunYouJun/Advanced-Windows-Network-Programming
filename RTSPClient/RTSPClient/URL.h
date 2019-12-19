@@ -1,7 +1,4 @@
 #pragma once
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <string>
 #include <afxinet.h>
