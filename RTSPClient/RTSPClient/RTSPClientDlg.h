@@ -44,6 +44,7 @@ public:
     // 匈牙利命名法
     // https ://blog.csdn.net/zpch666/article/details/85641278
     VLCPlayer m_player;
+    ClientSocket m_cs;
 
     URL cur_url;
 
