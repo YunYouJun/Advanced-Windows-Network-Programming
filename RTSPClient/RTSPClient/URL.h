@@ -8,7 +8,7 @@
 
 // Need to link with Ws2_32.lib
 #pragma comment (lib, "Ws2_32.lib")
-#define DEFAULT_BUFLEN 2048
+#define MAX_BUF_LEN 2048
 #define DEFAULT_PATHLEN 64
 #define MAXCLIENTS 5
 #define MAXSOCKETS 10
@@ -29,7 +29,7 @@ public:
     void read(string url);
     string getIp();
     string getName();
-    string getPort();
+	int getPort();
     string getProtocol();
     char* domainToIp(const char* domain);
 };

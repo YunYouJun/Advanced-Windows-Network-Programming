@@ -95,7 +95,7 @@ CString CRTSPUrlDlg::getRtspUrl() {
 
 BOOL CRTSPUrlDlg::OnInitDialog() {
     CDialog::OnInitDialog();
-    m_rtsp_url_ctrl.SetWindowTextW(L"rtsp://rtsp.yunyoujun.cn:554/test.mp3");
+    m_rtsp_url_ctrl.SetWindowTextW(L"rtsp://rtsp.yunyoujun.cn:554/adamas.mp3");
     return TRUE;
 }
 
@@ -290,8 +290,9 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
             {
                 m_player.Play();
                 m_rtsp_request.RequestPlay(PLAY_AFTER_PAUSE);
-                m_cs.Send(m_cs.RTSPSocket, m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
-                m_rtsp_reply.response = m_cs.Recv(m_cs.RTSPSocket);
+                m_cs.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
+				// recv in rtpThread
+				Sleep(200);
                 if (!m_rtsp_reply.CheckRtspResponse(PLAY))
                 {
                     AfxMessageBox(L"PLAY failed with error.");
@@ -314,8 +315,9 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
         {
             m_player.Pause();
             m_rtsp_request.RequestPause();
-            m_cs.Send(m_cs.RTSPSocket, m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
-            m_rtsp_reply.response = m_cs.Recv(m_cs.RTSPSocket);
+            m_cs.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
+			// recv in rtpThread
+			Sleep(200);
             if (!m_rtsp_reply.CheckRtspResponse(PAUSE))
             {
                 AfxMessageBox(L"PAUSE failed with error.");
@@ -336,6 +338,7 @@ void CRTSPClientDlg::OnBnClickedBtnStop()
     CString volumeStr;
     m_curTime = 0;
     m_curPos = 0;
+	c_fileLength = 0;
     m_player.Stop();
     if (g_local)
     {
@@ -350,15 +353,15 @@ void CRTSPClientDlg::OnBnClickedBtnStop()
         m_startTime.SetWindowText(L"00:00");
         //TEARDOWN
         m_rtsp_request.RequestTeardown();
-        m_cs.Send(rtspSocket, m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
-        m_rtsp_reply.response = m_cs.Recv(rtspSocket);
+        m_cs.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
+        m_cs.Recv(m_buf);
+		m_rtsp_reply.response = m_buf;
         if (!m_rtsp_reply.CheckRtspResponse(TEARDOWN))
         {
             AfxMessageBox(L"TEARDOWN failed with error.");
         }
         CloseHandle(hFile);
-        m_cs.Close(rtspSocket);
-        m_cs.Close(rtpSocket);
+        m_cs.Close();
     }
     g_stop = TRUE;
     g_init = FALSE;
@@ -376,20 +379,23 @@ UINT CRTSPClientDlg::rtspThread(LPVOID lpParam)
     CRTSPClientDlg *p = (CRTSPClientDlg *)lpParam;
     p->m_rtsp_request.url = p->c_url;
 
-    if (!p->m_cs.Open(p->m_cs.RTSPSocket, p->cur_url.getIp().c_str(), p->cur_url.getPort().c_str(), TCP))
+	int recv_size;
+
+    if (!p->m_cs.Open())
     {
         AfxMessageBox(L"Socket failed with error.");
     }
 
-    if (!p->m_cs.Connect(p->m_cs.RTSPSocket, p->m_cs.RTSPServerInfo))
+    if (!p->m_cs.Connect(p->cur_url.getIp().c_str(), p->cur_url.getPort()))
     {
         AfxMessageBox(L"Connect failed with error.");
     }
 
     //OPTIONS
     p->m_rtsp_request.RequestOptions();
-    p->m_cs.Send(p->m_cs.RTSPSocket, p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-    p->m_rtsp_reply.response = p->m_cs.Recv(p->m_cs.RTSPSocket);
+    p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+	p->m_cs.Recv(p->m_buf);
+	p->m_rtsp_reply.response = p->m_buf;
     if (!p->m_rtsp_reply.CheckRtspResponse(OPTIONS) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
     {
         AfxMessageBox(L"OPTIONS failed with error.");
@@ -397,49 +403,80 @@ UINT CRTSPClientDlg::rtspThread(LPVOID lpParam)
 
     //DESCRIBE
     p->m_rtsp_request.RequestDescribe();
-    p->m_cs.Send(p->m_cs.RTSPSocket, p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-    p->m_rtsp_reply.response = p->m_cs.Recv(p->m_cs.RTSPSocket);
+    p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+    p->m_cs.Recv(p->m_buf);
+	p->m_rtsp_reply.response = p->m_buf;
     if (!p->m_rtsp_reply.CheckRtspResponse(DESCRIBE) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
     {
         AfxMessageBox(L"DESCRIBE failed with error.");
     }
     p->m_rtsp_reply.GetAudioLen();
+	// why? rtsp time more than local
     p->c_fileLength = atoi(p->m_rtsp_reply.fileLength.c_str());
 
     //SETUP
     p->m_rtsp_request.RequestSetup();
-    p->m_cs.Send(p->m_cs.RTSPSocket, p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-    p->m_rtsp_reply.response = p->m_cs.Recv(p->m_cs.RTSPSocket);
+    p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+    p->m_cs.Recv(p->m_buf);
+	p->m_rtsp_reply.response = p->m_buf;
     if (!p->m_rtsp_reply.CheckRtspResponse(SETUP) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
     {
         AfxMessageBox(L"SETUP failed with error.");
     }
 
-    //p->m_rtsp_reply.GetResponseRtcpPort();
-    //p->m_rtsp_reply.GetResponseRtpPort();
-    //p->c_clientRtpPort = p->m_rtsp_reply.ClientRtpPort;
-    //p->c_serverRtpPort = p->m_rtsp_reply.ServerRtpPort;
-
     //PLAY
     p->m_rtsp_request.Session = p->m_rtsp_reply.Session;
     p->m_rtsp_request.RequestPlay(p->m_fromTime);
-    p->m_cs.Send(p->m_cs.RTSPSocket, p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-    Sleep(1000);
-    p->m_rtsp_reply.response = p->m_cs.Recv(p->m_cs.RTSPSocket);
-    if (!p->m_rtsp_reply.CheckRtspResponse(PLAY) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
-    {
-        AfxMessageBox(L"PLAY failed with error.");
-    }
-    else {
-        AfxBeginThread(rtpThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
-    }
+    p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+    Sleep(200);
+	recv_size = p->m_cs.Recv(p->m_buf);
+
+	int len;
+	char rtp[MAX_BUF_LEN];
+	if (p->m_buf[0] == '$' && p->m_buf[1] == '\x1') {
+		// 4B
+		// RTSP Interleaved Frame, Channel: 0x01
+		int i;
+		len = (int)p->m_buf[2] * 256 + (int)p->m_buf[3];
+		// interleaved rtsp
+		char rtsp[MAX_BUF_LEN];
+		memset(rtsp, 0, sizeof(rtsp));
+		for (i = 0; i < recv_size - (4 + len); i++)
+		{
+			if (p->m_buf[i + (4 + len)] == '$') {
+				break;
+			}
+			rtsp[i] = p->m_buf[i + (4 + len)];
+		}
+		p->m_rtsp_reply.response = rtsp;
+		if (!p->m_rtsp_reply.CheckRtspResponse(PLAY) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
+		{
+			AfxMessageBox(L"PLAY failed with error.");
+		}
+		// RTSP Interleaved Frame, Channel: 0x00
+		int rtp_start = i + (4 + len);
+		if (p->m_buf[rtp_start + 1] == '\x0') {
+			len = (int)p->m_buf[rtp_start + 2] * 256 + (int)p->m_buf[rtp_start + 3];
+
+			// first rtp frame
+			memset(rtp, 0, sizeof(rtp));
+			memcpy(rtp, p->m_buf + rtp_start + 4 + 16 +4, len - 16 - 4);
+			p->m_fs.open("_cache.mp3", ios::out | ios::binary);
+			p->m_fs.write(rtp, len);
+
+			// recv
+			AfxBeginThread(rtpThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+		}
+	}
 
     //PARAMETER
     while (!p->g_stop)
     {
         p->m_rtsp_request.RequestGetparameter();
-        p->m_cs.Send(p->m_cs.RTSPSocket, p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-        p->m_rtsp_reply.response = p->m_cs.Recv(p->m_cs.RTSPSocket);
+        p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+
+		// recv in rtpThread (because rtp data & reply mixed)
+		Sleep(1000);
         if (!p->m_rtsp_reply.CheckRtspResponse(GET_PARAMETER) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
         {
             AfxMessageBox(L"GET PARAMETER failed with error.");
@@ -447,106 +484,77 @@ UINT CRTSPClientDlg::rtspThread(LPVOID lpParam)
         // because timeout: 65s
         Sleep(60000);
     }
+
+	p->m_fs.close();
     return 0;
 }
 
 UINT CRTSPClientDlg::rtpThread(LPVOID lpParam)
 {
     CRTSPClientDlg *p = (CRTSPClientDlg *)lpParam;
-    DWORD dwBytesWritten = 0;
-    DWORD dwBytesCount = 0;
-    int ClientBytesRecv = 0;
 
-    p->hFile = CreateFile(
-        L"./_cache.mp3",
-        GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_WRITE | FILE_SHARE_READ,
-        NULL,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
-        //FILE_FLAG_DELETE_ON_CLOSE,
-        NULL);
-
-    //string cacheName = "_cache.mp3";
-    //p->c_filePath = cacheName;
-    //fstream fs;
-    //bool isFirstBuffer = true;
-    //fs.open(cacheName, ios_base::binary | ios_base::out | ios_base::trunc);
-
-    // ios_base::out: 打开文件进行写操作，即写入数据到文件。
-    // ios_base::trunc: 打开文件，若文件已存在那么，清空文件内容.
-    
-
-    // WAIT_OBJECT_0：表示你等待的对象（比如线程、互斥体）已的正常执行完成或完成释放。
-
-    if (p->hFile == INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(p->hFile);
-    }
-    if (!p->m_cs.Open(p->m_cs.RTPSocket, p->c_serverIp.c_str(), p->c_serverRtpPort.c_str(), UDP))
-    {
-        AfxMessageBox(L"Socket failed with error.");
-    }
-
-    if (!p->m_cs.Bind(p->m_cs.RTPSocket, p->c_clientRtpPort.c_str()))
-    {
-        AfxMessageBox(L"Bind failed with error.");
-    }
-    p->c_filePath = ",/_cache.mp3";
+    p->c_filePath = "./_cache.mp3";
     AfxBeginThread(playThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 
-    while (TRUE)
+	while (TRUE)
     {
-        ZeroMemory(p->recvBuffer, sizeof(p->recvBuffer));
-        //ClientBytesRecv = m_cs.RecvFrom(m_cs.RTPSocket, m_cs.RTPServerInfo, p->recvBuffer, sizeof(p->recvBuffer));
-        //ClientBytesRecv = m_cs.Recv(m_cs.RTPSocket);
-        ClientBytesRecv = p->m_cs.RecvRTP(p->m_cs.RTPSocket, p->recvBuffer);
-            //if (!isFirstBuffer) {
-            //    fs.write(p->recvBuffer + 16, ClientBytesRecv - 16);
-            //}
-            //else {
-            //    fs.write(p->recvBuffer + 16 + 4 + 413, ClientBytesRecv - 16 - 4 - 413);
-            //    isFirstBuffer = false;
+		memset(p->m_buf, 0, sizeof(p->m_buf));
+		int recv_size = p->m_cs.Recv(p->m_buf);
 
-            //    // play
-            //    AfxBeginThread(playThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
-            //}
+		if (recv_size > 0) {
+			int i = 0;
+			if (p->m_buf[0] == 'R') {
+				// interleaved rtsp
+				char rtsp[MAX_BUF_LEN];
+				memset(rtsp, 0, sizeof(rtsp));
+				for (i = 0; i < recv_size; i++)
+				{
+					if (p->m_buf[i] == '$') {
+						break;
+					}
+					rtsp[i] = p->m_buf[i];
+				}
+				p->m_rtsp_reply.response = rtsp;
+			}
 
-        //ClientBytesRecv = m_cs.RecvFrom(m_cs.RTPSocket, m_cs.RTPServerInfo, p->recvBuffer, sizeof(p->recvBuffer));
-        if (ClientBytesRecv > 0)
-        {
-            dwBytesWritten = ClientBytesRecv - 16;
-            p->payloadBuffer = new char[ClientBytesRecv - 16];
-            ZeroMemory(p->payloadBuffer, sizeof(p->payloadBuffer));
-            memcpy(p->payloadBuffer, p->recvBuffer + 16, ClientBytesRecv - 16);
-            WriteFile(p->hFile, p->payloadBuffer, dwBytesWritten, &dwBytesWritten, NULL);
-        }
+			if (p->m_buf[i + 1] == '\x0') {
+				int len = 0;
+				len = (int)p->m_buf[i + 2] * 256 + (int)p->m_buf[i + 3];
+				p->m_fs.write(p->m_buf + i + 4 + 16, len - 16);
+
+				// play
+				AfxBeginThread(playThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+			}
+		}
     }
-
-    //fs.close();
     return 0;
 }
 
 UINT CRTSPClientDlg::playThread(LPVOID lpParam)
 {
     CRTSPClientDlg *p = (CRTSPClientDlg *)lpParam;
-    Sleep(100);
+	// wait download by RTP
+    Sleep(1000);
 
     p->m_player.OpenMedia(p->c_filePath.c_str());
     p->m_player.Play();
     p->g_play = TRUE;
     p->m_btnPlay.SetWindowText(_T("PAUSE"));
 
-    // set end time
-    libvlc_time_t local_fileLength;
-    local_fileLength = p->m_player.GetLength();
-    CTimeSpan length(static_cast<time_t>(local_fileLength / 1000));
-    CString endTimeStr;
-    endTimeStr.Format(L"%02d:%02d", length.GetMinutes(), length.GetSeconds());
-    p->m_endTime.SetWindowText(endTimeStr);
+	// set end time
+	libvlc_time_t local_fileLength;
+	local_fileLength = p->m_player.GetLength();
+	if (p->c_fileLength) {
+		local_fileLength = p->c_fileLength * 1000;
+	}
+	CTimeSpan length(static_cast<time_t>(local_fileLength / 1000));
+	CString endTimeStr;
+	endTimeStr.Format(L"%02d:%02d", length.GetMinutes(), length.GetSeconds());
+	p->m_endTime.SetWindowText(endTimeStr);
 
-    if (p->g_local)
-        UINT_PTR m_nWindowTimer = p->SetTimer(SETLOCALTIME, 100, NULL);
+	if (p->g_local) {
+		UINT_PTR m_nWindowTimer = p->SetTimer(SETLOCALTIME, 100, NULL);
+	}
     else if (p->g_rtsp) {
         UINT_PTR m_nWindowTimer = p->SetTimer(SETRTSPTIME, 100, NULL);
     }
@@ -583,8 +591,9 @@ void CRTSPClientDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
             m_progressBar.SetPos(pos);
             Sleep(10);
             m_rtsp_request.RequestPlay(m_curPos);
-            m_cs.Send(m_cs.RTSPSocket, m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
-            m_rtsp_reply.response = m_cs.Recv(m_cs.RTSPSocket);
+            m_cs.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
+            m_cs.Recv(m_buf);
+			m_rtsp_reply.response = m_buf;
             if (!m_rtsp_reply.CheckRtspResponse(PLAY) || m_rtsp_reply.Cseq != m_rtsp_request.Cseq)
             {
                 AfxMessageBox(L"PLAY failed with error.");
@@ -632,13 +641,16 @@ void CRTSPClientDlg::OnTimer(UINT_PTR nIDEvent)
         {
             m_curTime = m_curTime + 100;
         }
-        CTimeSpan length(static_cast<time_t>(rtsp_fileLength / 1000));
-        CTimeSpan actualPosition(static_cast<time_t>(m_curTime / 1000));
-        CString currentTimeStr, endTimeStr;
-        currentTimeStr.Format(L"%02d:%02d", actualPosition.GetMinutes(), actualPosition.GetSeconds());
-        endTimeStr.Format(L"%02d:%02d", length.GetMinutes(), length.GetSeconds());
-        m_startTime.SetWindowText(currentTimeStr);
-        m_endTime.SetWindowText(endTimeStr);
+
+		// common
+		CTimeSpan actualPosition(static_cast<time_t>(m_curTime / 1000));
+		if (m_curTime % 1000 > 500) {
+			actualPosition += 1;
+		}
+		CString currentTimeStr;
+		currentTimeStr.Format(L"%02d:%02d", actualPosition.GetMinutes(), actualPosition.GetSeconds());
+		m_startTime.SetWindowText(currentTimeStr);
+
         m_curPos = (int)(m_curTime * 100 / rtsp_fileLength);
         m_progressBar.SetPos(m_curPos);
     }

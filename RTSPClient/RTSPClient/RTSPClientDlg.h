@@ -45,8 +45,11 @@ public:
     // https ://blog.csdn.net/zpch666/article/details/85641278
     VLCPlayer m_player;
     ClientSocket m_cs;
+	fstream m_fs;
 
     URL cur_url;
+	char m_buf[MAX_BUF_LEN];
+	char m_reply_buf[MAX_BUF_LEN];
 
     RTSP m_rtsp_request;
     RTSP m_rtsp_reply;
@@ -89,7 +92,6 @@ public:
     // you drag to
     int m_curPos;
 
-    char recvBuffer[DEFAULT_BUFLEN];
     char *payloadBuffer;
 
     static UINT playThread(LPVOID lpParam);
