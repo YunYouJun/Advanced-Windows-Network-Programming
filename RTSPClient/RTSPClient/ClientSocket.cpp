@@ -34,22 +34,22 @@ bool ClientSocket::Open()
     return TRUE;
 }
 
+// our program is client, and I don't want to use UDP, so we don't need it
 bool ClientSocket::Bind(const char *ip, u_short port)
 {
     // server bind & client random
     sockaddr_in service;
     service.sin_family = AF_INET;
 
-    // to fix
-    //service.sin_addr.s_addr = inet_addr(ip);
-    //service.sin_port = htons(port);
+    service.sin_addr.s_addr = inet_addr(ip);
+    service.sin_port = htons(port);
     // connect
 
     // Setup the TCP listening socket
     int iResult;
     iResult = bind(m_tcp_socket, (sockaddr *)&service, sizeof(service));
     if (iResult == SOCKET_ERROR) {
-        printf("bind failed with error: %u\n", WSAGetLastError());
+		AfxMessageBox(L"bind failed with error: %u\n", WSAGetLastError());
         closesocket(m_tcp_socket);
         WSACleanup();
         return FALSE;
@@ -57,88 +57,53 @@ bool ClientSocket::Bind(const char *ip, u_short port)
     return TRUE;
 }
 
-bool ClientSocket::Connect(SOCKET &Socket, struct addrinfo *serverInfo)
+bool ClientSocket::Connect(const char* ip, u_short port)
 {
-    if (connect(Socket, serverInfo->ai_addr, serverInfo->ai_addrlen) != 0)
-    {
-        return FALSE;
-    }
-    else
-    {
-        return TRUE;
-    }
+	int iResult;
+
+	struct sockaddr_in server;
+	server.sin_family = AF_INET;
+	server.sin_port = htons(port);
+	server.sin_addr.S_un.S_addr = inet_addr(ip);
+
+	// Connect to server.
+	iResult = connect(m_tcp_socket, (sockaddr *)&server, sizeof(server));
+	if (iResult == SOCKET_ERROR) {
+		AfxMessageBox(L"Unable to connect to server!\n");
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
-bool ClientSocket::Send(SOCKET &Socket, const char*sendbuf, int sendbuflen)
+bool ClientSocket::Send(const char*sendbuf, int sendbuflen)
 {
-    int size;
-    size = send(Socket, sendbuf, sendbuflen, 0);
-    if (size == SOCKET_ERROR)
+    if (send(m_tcp_socket, sendbuf, sendbuflen, 0) == SOCKET_ERROR)
     {
         return FALSE;
     }
     return TRUE;
 }
 
-char* ClientSocket::Recv(SOCKET &Socket)
+int ClientSocket::Recv(char* recvbuf)
 {
-    int size;
-    char recvbuf[65535];
     memset(recvbuf, 0, sizeof(recvbuf));
-    size = recv(Socket, recvbuf, sizeof(recvbuf), 0);
-    if (size == SOCKET_ERROR)
-    {
-        return "Socket Error.";
-    }
-    else if (size == 0)
-    {
-        return "CLOSE";
-    }
-    else
-    {
-        if (recvbuf[0] == '$' && recvbuf[1] == '\x1') {
-            // interleaved rtsp
-            char temp[65475];
-            memset(temp, 0, sizeof(temp));
-            for (int i = 0; i < size - 60; i++)
-            {
-                temp[i] = recvbuf[i + 60];
-            }
-            return temp;
-        }
-        return recvbuf;
-    }
+	return recv(m_tcp_socket, recvbuf, MAX_BUF_LEN, 0);
 }
 
-int ClientSocket::RecvRTP(SOCKET &Socket, char* recvbuf)
+int ClientSocket::RecvRTP(char* recvbuf)
 {
     memset(recvbuf, 0, sizeof(recvbuf));
-    int recv_size = recv(Socket, recvbuf, sizeof(recvbuf), 0);
+    int recv_size = recv(m_tcp_socket, recvbuf, sizeof(recvbuf), 0);
     //if (recv_size == SOCKET_ERROR) {
     //    return "Recv RTP Error";
     //}
     return recv_size;
 }
 
-int ClientSocket::RecvFrom(SOCKET &Socket, struct addrinfo *serverInfo, char *recvBuf, int revBuflen)
+void ClientSocket::Close()
 {
-    int size = sizeof(serverInfo->ai_addr);
-    sockaddr_in server_info;
-    server_info.sin_addr.S_un.S_addr = inet_addr(m_rtp_server_ip);
-    server_info.sin_port = atoi(m_rtp_server_port);
-
-    int ClientBytesRecv = recvfrom(Socket, recvBuf, revBuflen, 0, (SOCKADDR *)&server_info, &size);
-    if (ClientBytesRecv == SOCKET_ERROR) {
-        return -1;
-    }
-    else {
-        return ClientBytesRecv;
-    }
-}
-
-void ClientSocket::Close(SOCKET &Socket)
-{
-    closesocket(Socket);
-    Socket = 0;
+    closesocket(m_tcp_socket);
+	m_tcp_socket = INVALID_SOCKET;
     WSACleanup();
 }

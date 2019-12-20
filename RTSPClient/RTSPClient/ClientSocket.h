@@ -31,11 +31,11 @@ public:
     bool Initialize();
     bool Open();
     bool Bind(const char *ip, u_short port);
-    bool Connect(SOCKET &Socket, struct addrinfo *serverInfo);
-    bool Send(SOCKET &Socket, const char*sendbuf, int sendbuflen);
-    char* Recv(SOCKET &Socket);
-    int RecvRTP(SOCKET &Socket, char* recvbuf);
-    int RecvFrom(SOCKET &Socket, struct addrinfo *serverInfo, char *recvBuf, int revBuflen);
-    void Close(SOCKET &Socket);
+    bool Connect(const char *ip, u_short port);
+    bool Send(const char*sendbuf, int sendbuflen);
+	int Recv(char* recvbuf);
+    void Close();
+
+	int RecvRTP(char* recvbuf);
 };
 

@@ -81,9 +81,9 @@ string URL::getName()
     return m_name;
 }
 
-string URL::getPort()
+int URL::getPort()
 {
-    return m_port;
+    return atoi(m_port.c_str());
 }
 
 string URL::getProtocol() {
