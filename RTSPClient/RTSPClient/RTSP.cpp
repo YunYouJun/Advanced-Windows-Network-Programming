@@ -42,17 +42,17 @@ void RTSP::RequestSetup()
     request = "SETUP " + url + " RTSP/1.0\r\n" + "CSeq: " + Cseq + "\r\n" + "Transport: RTP/AVP;unicast;client_port=" + ClientRtpPort + "-" + ClientRtcpPort + "\r\n" + UserAgent + "\r\n\r\n";
 }
 
-void RTSP::RequestPlay(libvlc_time_t pos)
+void RTSP::RequestPlay(int second)
 {
     addCseq();
-    if (pos == -1)
+    if (second == -1)
     {
         request = "PLAY " + url + " RTSP/1.0\r\n" + "CSeq: " + Cseq + "\r\n" + "Session: " + Session + "\r\n" + UserAgent + "\r\n\r\n";
     }
     else
     {
         char s[10];
-        _itoa_s(pos, s, 10);
+        _itoa_s(second, s, 10);
         string PosCSr = string(s);
         request = "PLAY " + url + " RTSP/1.0\r\n" + "CSeq: " + Cseq + "\r\n" + UserAgent + "\r\nSession: " + Session + "\r\nRange: npt=" + PosCSr + ".000-\r\n\r\n";
     }
@@ -182,5 +182,5 @@ void RTSP::GetAudioLen()
     int beg = response.find("a=range:npt=0-");
     beg += strlen("a=range:npt=0-");
     int end = response.find("\r\n", beg);
-    fileLength = response.substr(beg, end - beg);
+    file_length = atof(response.substr(beg, end - beg).c_str()) * 1000;
 }

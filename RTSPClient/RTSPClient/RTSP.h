@@ -17,7 +17,7 @@ public:
     void RequestOptions();
     void RequestDescribe();
     void RequestSetup();
-    void RequestPlay(libvlc_time_t pos);
+    void RequestPlay(int second);
     void RequestPause();
     void RequestGetparameter();
     void RequestTeardown();
@@ -43,5 +43,5 @@ public:
     string ClientRtcpPort;
     string UserAgent;
     int Status;
-    string fileLength;
+	int file_length;
 };

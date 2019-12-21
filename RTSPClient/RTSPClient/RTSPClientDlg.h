@@ -49,6 +49,8 @@ public:
 	ClientSocket m_cs_udp;
 	fstream m_fs;
 
+	string c_url;
+	// parse
     URL cur_url;
 	char m_buf[MAX_BUF_LEN];
 	char m_rtp_buf[MAX_BUF_LEN];
@@ -66,33 +68,24 @@ public:
     CStatic m_audioName;
     CString m_url;
 
-    CWinThread *RTSPThread;
-    CWinThread *PLAYThread;
-
     // global var
     BOOL g_init;
     BOOL g_rtsp;
     BOOL g_play;
     BOOL g_pause;
     BOOL g_local;
-    BOOL g_forward;
+    BOOL g_adjust;
 	BOOL g_mute;
 
     string c_filePath;
-    string c_url;
-    string c_port;
-    string c_serverIp;
     string c_fileName;
     string c_clientRtpPort;
     string c_serverRtpPort;
     libvlc_time_t c_fileLength;
 
-    libvlc_time_t m_fromTime;
     libvlc_time_t m_curTime;
     // you drag to
     int m_curPos;
-
-    char *payloadBuffer;
 
     static UINT playThread(LPVOID lpParam);
     static UINT rtspThread(LPVOID lpParam);
