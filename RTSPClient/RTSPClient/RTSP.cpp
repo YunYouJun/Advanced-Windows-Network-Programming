@@ -3,18 +3,16 @@
 RTSP::RTSP()
 {
     this->UserAgent = "User-Agent: LibVLC/2.1.5 (LIVE555 Streaming Media v2014.05.27) YunYouJun 2019.12.21";
-    this->ClientRtpPort = "56789";
-    this->ClientRtcpPort = "56790";
+    //this->ClientRtpPort = "56789";
+    //this->ClientRtcpPort = "56790";
+	this->ClientRtpPort = "65432";
+	this->ClientRtcpPort = "65433";
+
     this->request = "";
     this->response = "";
 }
 
-RTSP::~RTSP(){}
-
-void RTSP::SetUrl(string url)
-{
-    this->url = url;
-}
+RTSP::~RTSP() {}
 
 void RTSP::addCseq()
 {
@@ -42,23 +40,21 @@ void RTSP::RequestSetup()
 {
     addCseq();
     request = "SETUP " + url + " RTSP/1.0\r\n" + "CSeq: " + Cseq + "\r\n" + "Transport: RTP/AVP;unicast;client_port=" + ClientRtpPort + "-" + ClientRtcpPort + "\r\n" + UserAgent + "\r\n\r\n";
-    //request = "SETUP " + url + " RTSP/1.0\r\n" + "CSeq: " + Cseq + "\r\n" + "Transport: RTP/AVP/TCP;interleaved=0-1" + "\r\n" + UserAgent + "\r\n\r\n";
 }
 
-void RTSP::RequestPlay(libvlc_time_t pos, string end)
+void RTSP::RequestPlay(libvlc_time_t pos)
 {
     addCseq();
     if (pos == -1)
     {
-        request = "PLAY " + url + " RTSP/1.0\r\n" +
-            "CSeq: " + Cseq + "\r\n" + "Session: " + Session + "\r\n" + UserAgent + "\r\n\r\n";
+        request = "PLAY " + url + " RTSP/1.0\r\n" + "CSeq: " + Cseq + "\r\n" + "Session: " + Session + "\r\n" + UserAgent + "\r\n\r\n";
     }
     else
     {
         char s[10];
         _itoa_s(pos, s, 10);
         string PosCSr = string(s);
-        request = "PLAY " + url + " RTSP/1.0\r\n" + "CSeq: " + Cseq + "\r\n" + UserAgent + "\r\nSession: " + Session + "\r\nRange: npt=" + PosCSr + ".000-" + end + "\r\n\r\n";
+        request = "PLAY " + url + " RTSP/1.0\r\n" + "CSeq: " + Cseq + "\r\n" + UserAgent + "\r\nSession: " + Session + "\r\nRange: npt=" + PosCSr + ".000-\r\n\r\n";
     }
 }
 
@@ -110,7 +106,7 @@ int RTSP::GetResponseStatus()
     return Status;
 }
 
-void RTSP::GetResponseRtpPort()
+void RTSP::GetResponseServerRtpPort()
 {
     int beg = response.find("server_port");
     beg += strlen("server_port=");
@@ -123,12 +119,20 @@ void RTSP::SetRequestSession()
     Session = GetResponseSession();
 }
 
-void RTSP::GetResponseRtcpPort()
+void RTSP::GetResponseServerRtcpPort()
 {
     int beg = response.find("server_port=" + ServerRtpPort + "-");
     beg += strlen("-") + strlen("server_port=") + ServerRtpPort.size();
     int end = response.find("\r\n", beg);
     ServerRtcpPort = response.substr(beg, end - beg);
+}
+
+void RTSP::GetResponseClientRtpPort()
+{
+	int beg = response.find("client_port");
+	beg += strlen("client_port=");
+	int end = response.find("-", beg);
+	ClientRtpPort = response.substr(beg, end - beg);
 }
 
 bool RTSP::CheckRtspResponse(int type)

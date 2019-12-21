@@ -220,7 +220,10 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\global-line.bmp" />
+    <Image Include="res\pause-line.bmp" />
+    <Image Include="res\play-line.bmp" />
     <Image Include="res\RTSPClient.ico" />
+    <Image Include="res\stop-line.bmp" />
     <Image Include="res\volume-down-line.bmp" />
     <Image Include="res\volume-mute-line.bmp" />
     <Image Include="res\volume-up-line.bmp" />

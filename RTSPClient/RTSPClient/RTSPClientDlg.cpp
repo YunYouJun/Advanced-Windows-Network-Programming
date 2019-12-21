@@ -107,19 +107,31 @@ CRTSPClientDlg::CRTSPClientDlg(CWnd* pParent /*=nullptr*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDI_LOGO);
 }
 
+CRTSPClientDlg::~CRTSPClientDlg()
+{
+	//TEARDOWN
+	m_rtsp_request.RequestTeardown();
+	m_cs_tcp.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
+	// close
+	m_cs_tcp.Close();
+	m_cs_udp.Close();
+	m_fs.close();
+}
+
 void CRTSPClientDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 
-    DDX_Control(pDX, IDC_PROGRESS_SLIDER, m_progressBar);
-    DDX_Control(pDX, IDC_VOLUME_SLIDER, m_volBar);
-    DDX_Control(pDX, IDC_BTN_PLAY, m_btnPlay);
-    DDX_Control(pDX, IDC_BTN_STOP, m_btnStop);
-    DDX_Control(pDX, IDC_START_TIME, m_startTime);
-    DDX_Control(pDX, IDC_END_TIME, m_endTime);
-    DDX_Control(pDX, IDC_TXT_VOLUME, m_volText);
-    DDX_Control(pDX, IDC_AUDIO_NAME, m_audioName);
-    //DDX_Control(pDX, IDC_INPUT_URL, m_url);
+	DDX_Control(pDX, IDC_PROGRESS_SLIDER, m_progressBar);
+	DDX_Control(pDX, IDC_VOLUME_SLIDER, m_volBar);
+	DDX_Control(pDX, IDC_BTN_PLAY, m_btnPlay);
+	DDX_Control(pDX, IDC_BTN_STOP, m_btnStop);
+	DDX_Control(pDX, IDC_START_TIME, m_startTime);
+	DDX_Control(pDX, IDC_END_TIME, m_endTime);
+	DDX_Control(pDX, IDC_TXT_VOLUME, m_volText);
+	DDX_Control(pDX, IDC_AUDIO_NAME, m_audioName);
+	//DDX_Control(pDX, IDC_INPUT_URL, m_url);
+	DDX_Control(pDX, IDC_VOL, m_btnVol);
 }
 
 BEGIN_MESSAGE_MAP(CRTSPClientDlg, CDialog)
@@ -133,6 +145,7 @@ BEGIN_MESSAGE_MAP(CRTSPClientDlg, CDialog)
     ON_WM_CTLCOLOR()
     ON_COMMAND(ID_OPEN_RTSP, &CRTSPClientDlg::OnOpenRtsp)
     ON_COMMAND(ID_OPEN_LOCAL, &CRTSPClientDlg::OnOpenLocal)
+	ON_BN_CLICKED(IDC_VOL, &CRTSPClientDlg::OnBnClickedVol)
 END_MESSAGE_MAP()
 
 // CRTSPClientDlg 消息处理程序
@@ -170,13 +183,22 @@ BOOL CRTSPClientDlg::OnInitDialog()
     SetIcon(m_hIcon, TRUE);			// 设置大图标
     SetIcon(m_hIcon, FALSE);		// 设置小图标
 
+	//icon
+	HBITMAP hBmp_play = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PLAY));
+	HBITMAP hBmp_pause = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PAUSE));
+	HBITMAP hBmp_stop = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_STOP));
+	HBITMAP hBmp_volUp = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_VOL_UP));
+	m_btnPlay.SetBitmap(hBmp_play);
+	m_btnStop.SetBitmap(hBmp_stop);
+	m_btnVol.SetBitmap(hBmp_volUp);
+
     // TODO:  在此添加额外的初始化代码
     g_pause = FALSE;
     g_play = FALSE;
     g_init = FALSE;
     g_local = FALSE;
-    g_stop = FALSE;
     g_forward = FALSE;
+	g_mute = FALSE;
 
     g_rtsp = false;
 
@@ -186,6 +208,12 @@ BOOL CRTSPClientDlg::OnInitDialog()
     m_volBar.SetPos(100);
     m_volText.SetWindowText(_T("100"));
 
+	// bold
+	CFont pfont;
+	pfont.CreateFontW(10, 0, 0, 0, FW_BOLD, 0, 1, 0, 0, 0, 0, 0, 0, _T("Mircosoft YaHei"));
+	m_audioName.SetFont(&pfont);
+
+	m_btnPlay.EnableWindow(FALSE);
     //m_url = "rtsp://computing.cuc.edu.cn:8554/Angel.mp3";
     //m_url = "rtsp://rtsp.yunyoujun.cn:554/test.mp3";
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -267,7 +295,7 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
         {
             if (!g_init)
             {
-                PLAYThread = AfxBeginThread(playThread, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+                AfxBeginThread(playThread, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
                 g_init = TRUE;
             }
             else if (g_pause)
@@ -275,7 +303,10 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
                 m_player.Play();
                 g_pause = FALSE;
                 g_play = TRUE;
-                m_btnPlay.SetWindowText(_T("PAUSE"));
+                //m_btnPlay.SetWindowText(_T("PAUSE"));
+
+				HBITMAP hBmp_pause = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PAUSE));
+				m_btnPlay.SetBitmap(hBmp_pause);
             }
         }
 
@@ -290,16 +321,21 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
             {
                 m_player.Play();
                 m_rtsp_request.RequestPlay(PLAY_AFTER_PAUSE);
-                m_cs.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
-				// recv in rtpThread
-				Sleep(200);
+                m_cs_tcp.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
+
+				m_cs_tcp.Recv(m_buf);
+				m_rtsp_reply.response = m_buf;
+
                 if (!m_rtsp_reply.CheckRtspResponse(PLAY))
                 {
                     AfxMessageBox(L"PLAY failed with error.");
                 }
                 g_play = TRUE;
                 g_pause = FALSE;
-                m_btnPlay.SetWindowText(_T("PAUSE"));
+                //m_btnPlay.SetWindowText(_T("PAUSE"));
+
+				HBITMAP hBmp_pause = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PAUSE));
+				m_btnPlay.SetBitmap(hBmp_pause);
             }
         }
     }
@@ -309,15 +345,19 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
             m_player.Pause();
             g_pause = TRUE;
             g_play = FALSE;
-            m_btnPlay.SetWindowText(_T("PLAY"));
+
+			HBITMAP hBmp_play = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PLAY));
+			m_btnPlay.SetBitmap(hBmp_play);
         }
         if (g_rtsp)
         {
             m_player.Pause();
             m_rtsp_request.RequestPause();
-            m_cs.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
-			// recv in rtpThread
-			Sleep(200);
+            m_cs_tcp.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
+
+			m_cs_tcp.Recv(m_buf);
+			m_rtsp_reply.response = m_buf;
+
             if (!m_rtsp_reply.CheckRtspResponse(PAUSE))
             {
                 AfxMessageBox(L"PAUSE failed with error.");
@@ -325,7 +365,9 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
             else {
                 g_pause = TRUE;
                 g_play = FALSE;
-                m_btnPlay.SetWindowText(_T("PLAY"));
+
+				HBITMAP hBmp_play = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PLAY));
+				m_btnPlay.SetBitmap(hBmp_play);
             }
         }
     }
@@ -333,8 +375,6 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
 
 void CRTSPClientDlg::OnBnClickedBtnStop()
 {
-    SOCKET rtspSocket = m_cs.RTSPSocket;
-    SOCKET rtpSocket = m_cs.RTPSocket;
     CString volumeStr;
     m_curTime = 0;
     m_curPos = 0;
@@ -342,36 +382,43 @@ void CRTSPClientDlg::OnBnClickedBtnStop()
     m_player.Stop();
     if (g_local)
     {
+		g_local = FALSE;
+
         KillTimer(SETLOCALTIME);
         m_progressBar.SetPos(0);
         m_startTime.SetWindowText(L"00:00");
     }
     if (g_rtsp)
     {
+		g_rtsp = FALSE;
+
         KillTimer(SETRTSPTIME);
         m_progressBar.SetPos(0);
         m_startTime.SetWindowText(L"00:00");
+
         //TEARDOWN
         m_rtsp_request.RequestTeardown();
-        m_cs.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
-        m_cs.Recv(m_buf);
+        m_cs_tcp.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
+        m_cs_tcp.Recv(m_buf);
 		m_rtsp_reply.response = m_buf;
-        if (!m_rtsp_reply.CheckRtspResponse(TEARDOWN))
+        if (!m_rtsp_reply.CheckRtspResponse(TEARDOWN) && m_rtsp_reply.Cseq != m_rtsp_request.Cseq)
         {
             AfxMessageBox(L"TEARDOWN failed with error.");
         }
-        CloseHandle(hFile);
-        m_cs.Close();
+
+        m_cs_tcp.Close();
+		m_cs_udp.Close();
+		m_fs.close();
     }
-    g_stop = TRUE;
     g_init = FALSE;
     g_pause = FALSE;
     g_play = FALSE;
-    g_local = FALSE;
-    g_rtsp = FALSE;
     g_forward = FALSE;
 
-    m_btnPlay.SetWindowText(_T("PLAY"));
+	m_audioName.SetWindowText(L"YunYou - AudioPlayer");
+
+	HBITMAP hBmp_play = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PLAY));
+	m_btnPlay.SetBitmap(hBmp_play);
 }
 
 UINT CRTSPClientDlg::rtspThread(LPVOID lpParam)
@@ -379,36 +426,36 @@ UINT CRTSPClientDlg::rtspThread(LPVOID lpParam)
     CRTSPClientDlg *p = (CRTSPClientDlg *)lpParam;
     p->m_rtsp_request.url = p->c_url;
 
-	int recv_size;
-
-    if (!p->m_cs.Open())
+    if (!p->m_cs_tcp.Open(TCP))
     {
         AfxMessageBox(L"Socket failed with error.");
     }
 
-    if (!p->m_cs.Connect(p->cur_url.getIp().c_str(), p->cur_url.getPort()))
+    if (!p->m_cs_tcp.Connect(p->cur_url.getIp().c_str(), p->cur_url.getPort()))
     {
         AfxMessageBox(L"Connect failed with error.");
     }
 
     //OPTIONS
     p->m_rtsp_request.RequestOptions();
-    p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-	p->m_cs.Recv(p->m_buf);
+    p->m_cs_tcp.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+	p->m_cs_tcp.Recv(p->m_buf);
 	p->m_rtsp_reply.response = p->m_buf;
     if (!p->m_rtsp_reply.CheckRtspResponse(OPTIONS) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
     {
         AfxMessageBox(L"OPTIONS failed with error.");
+		return -1;
     }
 
     //DESCRIBE
     p->m_rtsp_request.RequestDescribe();
-    p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-    p->m_cs.Recv(p->m_buf);
+    p->m_cs_tcp.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+    p->m_cs_tcp.Recv(p->m_buf);
 	p->m_rtsp_reply.response = p->m_buf;
     if (!p->m_rtsp_reply.CheckRtspResponse(DESCRIBE) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
     {
         AfxMessageBox(L"DESCRIBE failed with error.");
+		return -1;
     }
     p->m_rtsp_reply.GetAudioLen();
 	// why? rtsp time more than local
@@ -416,67 +463,47 @@ UINT CRTSPClientDlg::rtspThread(LPVOID lpParam)
 
     //SETUP
     p->m_rtsp_request.RequestSetup();
-    p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-    p->m_cs.Recv(p->m_buf);
+    p->m_cs_tcp.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+    p->m_cs_tcp.Recv(p->m_buf);
 	p->m_rtsp_reply.response = p->m_buf;
     if (!p->m_rtsp_reply.CheckRtspResponse(SETUP) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
     {
         AfxMessageBox(L"SETUP failed with error.");
-    }
+		return -1;
+	}
+	else {
+		p->m_rtsp_reply.GetResponseClientRtpPort();
+		p->m_rtsp_reply.GetResponseServerRtpPort();
+		p->c_clientRtpPort = p->m_rtsp_reply.ClientRtpPort;
+		p->c_serverRtpPort = p->m_rtsp_reply.ServerRtpPort;
+	}
 
     //PLAY
     p->m_rtsp_request.Session = p->m_rtsp_reply.Session;
     p->m_rtsp_request.RequestPlay(p->m_fromTime);
-    p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-    Sleep(200);
-	recv_size = p->m_cs.Recv(p->m_buf);
-
-	int len;
-	char rtp[MAX_BUF_LEN];
-	if (p->m_buf[0] == '$' && p->m_buf[1] == '\x1') {
-		// 4B
-		// RTSP Interleaved Frame, Channel: 0x01
-		int i;
-		len = (int)p->m_buf[2] * 256 + (int)p->m_buf[3];
-		// interleaved rtsp
-		char rtsp[MAX_BUF_LEN];
-		memset(rtsp, 0, sizeof(rtsp));
-		for (i = 0; i < recv_size - (4 + len); i++)
-		{
-			if (p->m_buf[i + (4 + len)] == '$') {
-				break;
-			}
-			rtsp[i] = p->m_buf[i + (4 + len)];
-		}
-		p->m_rtsp_reply.response = rtsp;
-		if (!p->m_rtsp_reply.CheckRtspResponse(PLAY) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
-		{
-			AfxMessageBox(L"PLAY failed with error.");
-		}
-		// RTSP Interleaved Frame, Channel: 0x00
-		int rtp_start = i + (4 + len);
-		if (p->m_buf[rtp_start + 1] == '\x0') {
-			len = (int)p->m_buf[rtp_start + 2] * 256 + (int)p->m_buf[rtp_start + 3];
-
-			// first rtp frame
-			memset(rtp, 0, sizeof(rtp));
-			memcpy(rtp, p->m_buf + rtp_start + 4 + 16 +4, len - 16 - 4);
-			p->m_fs.open("_cache.mp3", ios::out | ios::binary);
-			p->m_fs.write(rtp, len);
-
-			// recv
-			AfxBeginThread(rtpThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
-		}
+    p->m_cs_tcp.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+	p->m_cs_tcp.Recv(p->m_buf);
+	p->m_rtsp_reply.response = p->m_buf;
+	if (!p->m_rtsp_reply.CheckRtspResponse(PLAY) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
+	{
+		AfxMessageBox(L"PLAY failed with error.");
+		return -1;
+	}
+	else {
+		AfxBeginThread(rtpThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+		Sleep(1000);
+		AfxBeginThread(playThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 	}
 
     //PARAMETER
-    while (!p->g_stop)
+	// wait p->play change
+	Sleep(100);
+    while (p->g_rtsp && p->g_play)
     {
         p->m_rtsp_request.RequestGetparameter();
-        p->m_cs.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
-
-		// recv in rtpThread (because rtp data & reply mixed)
-		Sleep(1000);
+        p->m_cs_tcp.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+		p->m_cs_tcp.Recv(p->m_buf);
+		p->m_rtsp_reply.response = p->m_buf;
         if (!p->m_rtsp_reply.CheckRtspResponse(GET_PARAMETER) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
         {
             AfxMessageBox(L"GET PARAMETER failed with error.");
@@ -485,7 +512,7 @@ UINT CRTSPClientDlg::rtspThread(LPVOID lpParam)
         Sleep(60000);
     }
 
-	p->m_fs.close();
+	p->m_cs_tcp.Close();
     return 0;
 }
 
@@ -494,52 +521,43 @@ UINT CRTSPClientDlg::rtpThread(LPVOID lpParam)
     CRTSPClientDlg *p = (CRTSPClientDlg *)lpParam;
 
     p->c_filePath = "./_cache.mp3";
-    AfxBeginThread(playThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+	p->m_fs.open(p->c_filePath, ios::out | ios::binary);
+
+	if (!p->m_cs_udp.Open(UDP))
+	{
+		AfxMessageBox(L"Socket failed with error.");
+		return -1;
+	}
+	if ( !p->m_cs_udp.Bind(atoi(p->c_clientRtpPort.c_str())) )
+	{
+		AfxMessageBox(L"Bind failed with error.");
+		return -1;
+	}
 
 	while (TRUE)
-    {
-		memset(p->m_buf, 0, sizeof(p->m_buf));
-		int recv_size = p->m_cs.Recv(p->m_buf);
-
+	{
+		memset(p->m_rtp_buf, 0, sizeof(p->m_rtp_buf));
+		int recv_size = p->m_cs_udp.RecvFrom(p->m_rtp_buf, p->cur_url.getIp().c_str(), atoi(p->c_serverRtpPort.c_str()));
 		if (recv_size > 0) {
-			int i = 0;
-			if (p->m_buf[0] == 'R') {
-				// interleaved rtsp
-				char rtsp[MAX_BUF_LEN];
-				memset(rtsp, 0, sizeof(rtsp));
-				for (i = 0; i < recv_size; i++)
-				{
-					if (p->m_buf[i] == '$') {
-						break;
-					}
-					rtsp[i] = p->m_buf[i];
-				}
-				p->m_rtsp_reply.response = rtsp;
-			}
-
-			if (p->m_buf[i + 1] == '\x0') {
-				int len = 0;
-				len = (int)p->m_buf[i + 2] * 256 + (int)p->m_buf[i + 3];
-				p->m_fs.write(p->m_buf + i + 4 + 16, len - 16);
-
-				// play
-				AfxBeginThread(playThread, p, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
-			}
+			p->m_fs.write(p->m_rtp_buf + 16, recv_size - 16);
 		}
-    }
+	}
+
+	p->m_cs_udp.Close();
     return 0;
 }
 
 UINT CRTSPClientDlg::playThread(LPVOID lpParam)
 {
     CRTSPClientDlg *p = (CRTSPClientDlg *)lpParam;
-	// wait download by RTP
-    Sleep(1000);
 
+	p->g_play = TRUE;
     p->m_player.OpenMedia(p->c_filePath.c_str());
-    p->m_player.Play();
-    p->g_play = TRUE;
-    p->m_btnPlay.SetWindowText(_T("PAUSE"));
+    p->m_player.Play();    
+    //p->m_btnPlay.SetWindowText(_T("PAUSE"));
+
+	HBITMAP hBmp_pause = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PAUSE));
+	p->m_btnPlay.SetBitmap(hBmp_pause);
 
 	// set end time
 	libvlc_time_t local_fileLength;
@@ -558,6 +576,8 @@ UINT CRTSPClientDlg::playThread(LPVOID lpParam)
     else if (p->g_rtsp) {
         UINT_PTR m_nWindowTimer = p->SetTimer(SETRTSPTIME, 100, NULL);
     }
+
+	p->m_btnPlay.EnableWindow(TRUE);
     return 0;
 }
 
@@ -569,12 +589,26 @@ void CRTSPClientDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
     CSliderCtrl* pSlider = reinterpret_cast<CSliderCtrl*>(pScrollBar);
     if (*pSlider == m_volBar)
     {
+		g_mute = false;
+
         int pos = m_volBar.GetPos();
         m_player.SetVolume(pos);
         CString volumeStr;
         volumeStr.Format(L"%d", pos);
         m_volText.SetWindowText(volumeStr);
-        // todo set icon
+        // icon
+		HBITMAP hBmp_volDown = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_VOL_DOWN));
+		HBITMAP hBmp_volUp = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_VOL_UP));
+		HBITMAP hBmp_volMute = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_VOL_MUTE));
+		if (pos > 50) {
+			m_btnVol.SetBitmap(hBmp_volUp);
+		}
+		else if (pos > 0) {
+			m_btnVol.SetBitmap(hBmp_volDown);
+		}
+		else {
+			m_btnVol.SetBitmap(hBmp_volMute);
+		}
     }
 
     if (*pSlider == m_progressBar)
@@ -589,10 +623,10 @@ void CRTSPClientDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
             int pos = m_progressBar.GetPos();
             libvlc_time_t m_curPos = pos / 100 * c_fileLength;
             m_progressBar.SetPos(pos);
-            Sleep(10);
+            Sleep(100);
             m_rtsp_request.RequestPlay(m_curPos);
-            m_cs.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
-            m_cs.Recv(m_buf);
+            m_cs_tcp.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
+            m_cs_tcp.Recv(m_buf);
 			m_rtsp_reply.response = m_buf;
             if (!m_rtsp_reply.CheckRtspResponse(PLAY) || m_rtsp_reply.Cseq != m_rtsp_request.Cseq)
             {
@@ -662,6 +696,8 @@ void CRTSPClientDlg::OnOpenRtsp()
     // TODO: 在此添加命令处理程序代码
     CRTSPUrlDlg m_open_rtsp;
     if (m_open_rtsp.DoModal() == IDOK) {
+		OnBnClickedBtnStop();
+
         m_url = m_open_rtsp.m_rtsp_url;
         CString output;
         //CW2A将宽字符集（Unicode）转化为多字符集（ASCII）
@@ -698,6 +734,8 @@ void CRTSPClientDlg::OnOpenLocal()
         NULL);
     if (dlg.DoModal() == IDOK)
     {
+		OnBnClickedBtnStop();
+
         filePath = dlg.GetPathName();
         c_filePath = CT2CA(filePath.GetBuffer(0));
         g_local = TRUE;
@@ -733,4 +771,27 @@ void CRTSPUrlDlg::OnBnClickedOk()
     // TODO: 在此添加控件通知处理程序代码
     m_rtsp_url = getRtspUrl();
     CDialogEx::OnOK();
+}
+
+void CRTSPClientDlg::OnBnClickedVol()
+{
+	HBITMAP hBmp_volDown = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_VOL_DOWN));
+	HBITMAP hBmp_volUp = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_VOL_UP));
+	HBITMAP hBmp_volMute = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_VOL_MUTE));
+	if (g_mute) {
+		g_mute = false;
+		int vol = m_volBar.GetPos();
+		if (vol > 50) {
+			m_btnVol.SetBitmap(hBmp_volUp);
+		}
+		else if (vol > 0){
+			m_btnVol.SetBitmap(hBmp_volDown);
+		}
+		m_player.SetVolume(vol);
+	}
+	else {
+		g_mute = true;
+		m_btnVol.SetBitmap(hBmp_volMute);
+		m_player.SetVolume(0);
+	}
 }

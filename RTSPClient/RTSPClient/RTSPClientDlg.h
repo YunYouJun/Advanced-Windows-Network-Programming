@@ -20,6 +20,7 @@ class CRTSPClientDlg : public CDialogEx
 // 构造
 public:
 	CRTSPClientDlg(CWnd* pParent = nullptr);	// 标准构造函数
+	~CRTSPClientDlg();
 
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
@@ -44,12 +45,13 @@ public:
     // 匈牙利命名法
     // https ://blog.csdn.net/zpch666/article/details/85641278
     VLCPlayer m_player;
-    ClientSocket m_cs;
+    ClientSocket m_cs_tcp;
+	ClientSocket m_cs_udp;
 	fstream m_fs;
 
     URL cur_url;
 	char m_buf[MAX_BUF_LEN];
-	char m_reply_buf[MAX_BUF_LEN];
+	char m_rtp_buf[MAX_BUF_LEN];
 
     RTSP m_rtsp_request;
     RTSP m_rtsp_reply;
@@ -65,7 +67,6 @@ public:
     CString m_url;
 
     CWinThread *RTSPThread;
-    //CWinThread *RTPThread;
     CWinThread *PLAYThread;
 
     // global var
@@ -74,10 +75,9 @@ public:
     BOOL g_play;
     BOOL g_pause;
     BOOL g_local;
-    BOOL g_stop;
     BOOL g_forward;
+	BOOL g_mute;
 
-    HANDLE hFile;
     string c_filePath;
     string c_url;
     string c_port;
@@ -106,4 +106,6 @@ public:
     afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
     afx_msg void OnOpenRtsp();
     afx_msg void OnOpenLocal();
+	CButton m_btnVol;
+	afx_msg void OnBnClickedVol();
 };

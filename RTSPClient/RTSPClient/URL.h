@@ -27,7 +27,7 @@ public:
     URL();
     ~URL();
     void read(string url);
-    string getIp();
+	string getIp();
     string getName();
 	int getPort();
     string getProtocol();

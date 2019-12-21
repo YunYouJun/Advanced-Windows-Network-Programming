@@ -14,19 +14,19 @@ class RTSP
 public:
     RTSP();
     ~RTSP();
-    void SetUrl(string URL);
     void RequestOptions();
     void RequestDescribe();
     void RequestSetup();
-    void RequestPlay(libvlc_time_t pos, string end = "");
+    void RequestPlay(libvlc_time_t pos);
     void RequestPause();
     void RequestGetparameter();
     void RequestTeardown();
     string GetResponseSession();
     string GetResponseCseq();
     int GetResponseStatus();
-    void GetResponseRtpPort();
-    void GetResponseRtcpPort();
+	void GetResponseClientRtpPort();
+    void GetResponseServerRtpPort();
+    void GetResponseServerRtcpPort();
     void SetRequestSession();
     bool CheckRtspResponse(int type);
     void addCseq();
