@@ -20,6 +20,10 @@
 #define IDB_VOL_UP                      152
 #define IDI_ICON1                       153
 #define IDI_LOGO                        153
+#define IDB_PAUSE                       154
+#define IDB_PLAY                        155
+#define IDB_BITMAP1                     156
+#define IDB_STOP                        156
 #define IDC_PROGRESS_SLIDER             1000
 #define IDC_NAME                        1001
 #define IDC_AUDIO_NAME                  1001
@@ -36,6 +40,7 @@
 #define IDC_EDIT_URL                    1010
 #define IDC_BTN_OK                      1011
 #define IDC_BTN_OPEN                    1012
+#define IDC_VOL                         1013
 #define ID_BUTTON2                      32771
 #define ID_OPEN_RTSP                    32772
 #define ID_OPEN_LOCAL                   32773
@@ -44,9 +49,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_RESOURCE_VALUE        157
 #define _APS_NEXT_COMMAND_VALUE         32774
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1014
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

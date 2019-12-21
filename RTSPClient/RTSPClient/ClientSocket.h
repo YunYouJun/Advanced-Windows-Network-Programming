@@ -15,27 +15,22 @@ public:
     ClientSocket();
     ~ClientSocket();
 
-    SOCKET m_tcp_socket;
+    SOCKET m_socket;
 
     char m_rtp_server_port[5];
     char m_rtp_server_ip[16];
 
-    SOCKET RTSPSocket, RTPSocket;
-    SOCKET ConnectSocket;
     struct addrinfo* RTSPServerInfo;
     struct addrinfo* RTPServerInfo;
     struct addrinfo* RTPClientInfo;
     struct sockaddr_in ClientAddr;
     socklen_t addrLen;
 
-    bool Initialize();
-    bool Open();
-    bool Bind(const char *ip, u_short port);
+    bool Open(int type);
+    bool Bind(u_short port);
     bool Connect(const char *ip, u_short port);
     bool Send(const char*sendbuf, int sendbuflen);
 	int Recv(char* recvbuf);
+	int RecvFrom(char* recvbuf, const char* ip, u_short port);
     void Close();
-
-	int RecvRTP(char* recvbuf);
 };
-

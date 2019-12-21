@@ -101,5 +101,14 @@
     <Image Include="res\volume-up-line.bmp">
       <Filter>资源文件</Filter>
     </Image>
+    <Image Include="res\pause-line.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\play-line.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\stop-line.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
