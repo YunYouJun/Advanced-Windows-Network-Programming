@@ -193,16 +193,15 @@ BOOL CRTSPClientDlg::OnInitDialog()
 	m_btnVol.SetBitmap(hBmp_volUp);
 
     // TODO:  在此添加额外的初始化代码
-    g_pause = FALSE;
-    g_play = FALSE;
-    g_init = FALSE;
-    g_local = FALSE;
-    g_forward = FALSE;
+	g_init = FALSE;
+	g_rtsp = FALSE;
+	g_local = FALSE;
+	g_play = FALSE;
+	g_pause = FALSE;
+    g_adjust = FALSE;
 	g_mute = FALSE;
-
-    g_rtsp = false;
-
-    m_curTime = 0;
+    
+	m_curTime = 0;
     m_progressBar.SetRange(0, 100);
     m_volBar.SetRange(0, 100);
     m_volBar.SetPos(100);
@@ -214,6 +213,7 @@ BOOL CRTSPClientDlg::OnInitDialog()
 	m_audioName.SetFont(&pfont);
 
 	m_btnPlay.EnableWindow(FALSE);
+	m_progressBar.EnableWindow(FALSE);
     //m_url = "rtsp://computing.cuc.edu.cn:8554/Angel.mp3";
     //m_url = "rtsp://rtsp.yunyoujun.cn:554/test.mp3";
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -290,7 +290,6 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
 {
     if (!g_play)
     {
-        m_fromTime = 0;
         if (g_local)
         {
             if (!g_init)
@@ -314,28 +313,28 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
         {
             if (!g_init)
             {
-                RTSPThread = AfxBeginThread(rtspThread, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+                AfxBeginThread(rtspThread, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
                 g_init = TRUE;
             }
             else if (g_pause)
             {
-                m_player.Play();
                 m_rtsp_request.RequestPlay(PLAY_AFTER_PAUSE);
                 m_cs_tcp.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
-
 				m_cs_tcp.Recv(m_buf);
 				m_rtsp_reply.response = m_buf;
 
+				m_player.Play();
+
                 if (!m_rtsp_reply.CheckRtspResponse(PLAY))
                 {
-                    AfxMessageBox(L"PLAY failed with error.");
-                }
-                g_play = TRUE;
-                g_pause = FALSE;
-                //m_btnPlay.SetWindowText(_T("PAUSE"));
-
-				HBITMAP hBmp_pause = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PAUSE));
-				m_btnPlay.SetBitmap(hBmp_pause);
+                    TRACE(L"PLAY failed with error.");
+				}
+				else {
+					g_play = TRUE;
+					g_pause = FALSE;
+					HBITMAP hBmp_pause = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PAUSE));
+					m_btnPlay.SetBitmap(hBmp_pause);
+				}
             }
         }
     }
@@ -403,7 +402,7 @@ void CRTSPClientDlg::OnBnClickedBtnStop()
 		m_rtsp_reply.response = m_buf;
         if (!m_rtsp_reply.CheckRtspResponse(TEARDOWN) && m_rtsp_reply.Cseq != m_rtsp_request.Cseq)
         {
-            AfxMessageBox(L"TEARDOWN failed with error.");
+            TRACE(L"TEARDOWN failed with error.");
         }
 
         m_cs_tcp.Close();
@@ -413,9 +412,10 @@ void CRTSPClientDlg::OnBnClickedBtnStop()
     g_init = FALSE;
     g_pause = FALSE;
     g_play = FALSE;
-    g_forward = FALSE;
+    g_adjust = FALSE;
 
 	m_audioName.SetWindowText(L"YunYou - AudioPlayer");
+	AfxGetMainWnd()->SetWindowTextW(L"RTSPClient");
 
 	HBITMAP hBmp_play = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PLAY));
 	m_btnPlay.SetBitmap(hBmp_play);
@@ -459,7 +459,7 @@ UINT CRTSPClientDlg::rtspThread(LPVOID lpParam)
     }
     p->m_rtsp_reply.GetAudioLen();
 	// why? rtsp time more than local
-    p->c_fileLength = atoi(p->m_rtsp_reply.fileLength.c_str());
+    p->c_fileLength = p->m_rtsp_reply.file_length;
 
     //SETUP
     p->m_rtsp_request.RequestSetup();
@@ -480,8 +480,9 @@ UINT CRTSPClientDlg::rtspThread(LPVOID lpParam)
 
     //PLAY
     p->m_rtsp_request.Session = p->m_rtsp_reply.Session;
-    p->m_rtsp_request.RequestPlay(p->m_fromTime);
+    p->m_rtsp_request.RequestPlay(0); // from head
     p->m_cs_tcp.Send(p->m_rtsp_request.request.c_str(), strlen(p->m_rtsp_request.request.c_str()));
+	Sleep(100);
 	p->m_cs_tcp.Recv(p->m_buf);
 	p->m_rtsp_reply.response = p->m_buf;
 	if (!p->m_rtsp_reply.CheckRtspResponse(PLAY) || p->m_rtsp_reply.Cseq != p->m_rtsp_request.Cseq)
@@ -534,7 +535,7 @@ UINT CRTSPClientDlg::rtpThread(LPVOID lpParam)
 		return -1;
 	}
 
-	while (TRUE)
+	while (p->g_rtsp && p->m_cs_udp.m_socket != INVALID_SOCKET)
 	{
 		memset(p->m_rtp_buf, 0, sizeof(p->m_rtp_buf));
 		int recv_size = p->m_cs_udp.RecvFrom(p->m_rtp_buf, p->cur_url.getIp().c_str(), atoi(p->c_serverRtpPort.c_str()));
@@ -544,12 +545,14 @@ UINT CRTSPClientDlg::rtpThread(LPVOID lpParam)
 	}
 
 	p->m_cs_udp.Close();
+	p->m_fs.close();
     return 0;
 }
 
 UINT CRTSPClientDlg::playThread(LPVOID lpParam)
 {
     CRTSPClientDlg *p = (CRTSPClientDlg *)lpParam;
+	p->m_progressBar.EnableWindow(TRUE);
 
 	p->g_play = TRUE;
     p->m_player.OpenMedia(p->c_filePath.c_str());
@@ -563,7 +566,7 @@ UINT CRTSPClientDlg::playThread(LPVOID lpParam)
 	libvlc_time_t local_fileLength;
 	local_fileLength = p->m_player.GetLength();
 	if (p->c_fileLength) {
-		local_fileLength = p->c_fileLength * 1000;
+		local_fileLength = p->c_fileLength;
 	}
 	CTimeSpan length(static_cast<time_t>(local_fileLength / 1000));
 	CString endTimeStr;
@@ -620,19 +623,19 @@ void CRTSPClientDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
         }
         if (g_rtsp)
         {
+			Sleep(100);
             int pos = m_progressBar.GetPos();
-            libvlc_time_t m_curPos = pos / 100 * c_fileLength;
-            m_progressBar.SetPos(pos);
-            Sleep(100);
-            m_rtsp_request.RequestPlay(m_curPos);
+			m_curTime = pos * c_fileLength / 100;
+			int start_second = pos * c_fileLength / 100;
+			m_rtsp_request.RequestPlay(start_second / 1000);
             m_cs_tcp.Send(m_rtsp_request.request.c_str(), strlen(m_rtsp_request.request.c_str()));
             m_cs_tcp.Recv(m_buf);
 			m_rtsp_reply.response = m_buf;
             if (!m_rtsp_reply.CheckRtspResponse(PLAY) || m_rtsp_reply.Cseq != m_rtsp_request.Cseq)
             {
-                AfxMessageBox(L"PLAY failed with error.");
+                TRACE(L"PLAY failed with error.");
             }
-            g_forward = TRUE;
+            g_adjust = TRUE;
         }
     }
     CDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
@@ -651,9 +654,6 @@ void CRTSPClientDlg::OnTimer(UINT_PTR nIDEvent)
         //time_t：秒数
         //CTimeSpan：存储时间跨度中的秒数
         CTimeSpan actualPosition(static_cast<time_t>(m_curTime / 1000));
-        if (m_curTime % 1000 > 500) {
-            actualPosition += 1;
-        }
         CString currentTimeStr;
 
         currentTimeStr.Format(L"%02d:%02d", actualPosition.GetMinutes(), actualPosition.GetSeconds());
@@ -664,12 +664,12 @@ void CRTSPClientDlg::OnTimer(UINT_PTR nIDEvent)
     }
     else if (nIDEvent == SETRTSPTIME)
     {
-        rtsp_fileLength = c_fileLength * 1000;
-        if (g_forward)
+        rtsp_fileLength = c_fileLength;
+        if (g_adjust)
         {
             int pos = m_progressBar.GetPos();
-            m_curTime = pos * c_fileLength * 10;
-            g_forward = FALSE;
+            m_curTime = pos * c_fileLength / 100;
+            g_adjust = FALSE;
         }
         else if (m_curTime < rtsp_fileLength && !g_pause)
         {
@@ -678,9 +678,6 @@ void CRTSPClientDlg::OnTimer(UINT_PTR nIDEvent)
 
 		// common
 		CTimeSpan actualPosition(static_cast<time_t>(m_curTime / 1000));
-		if (m_curTime % 1000 > 500) {
-			actualPosition += 1;
-		}
 		CString currentTimeStr;
 		currentTimeStr.Format(L"%02d:%02d", actualPosition.GetMinutes(), actualPosition.GetSeconds());
 		m_startTime.SetWindowText(currentTimeStr);
@@ -688,6 +685,11 @@ void CRTSPClientDlg::OnTimer(UINT_PTR nIDEvent)
         m_curPos = (int)(m_curTime * 100 / rtsp_fileLength);
         m_progressBar.SetPos(m_curPos);
     }
+
+	if (m_curPos == 100) {
+		g_play = FALSE;
+	}
+
     CDialog::OnTimer(nIDEvent);
 }
 
@@ -705,12 +707,13 @@ void CRTSPClientDlg::OnOpenRtsp()
         cur_url.read(c_url);
         if (cur_url.getProtocol() == "rtsp") {
             g_rtsp = TRUE;
-            c_serverIp = cur_url.getIp();
+
             c_fileName = cur_url.getName();
-            c_port = cur_url.getPort();
             output = c_fileName.c_str();
             m_audioName.SetWindowText(CString(cur_url.getName().c_str()));
-            
+
+			CString header = _T("RTSPClient - ") + output;
+			AfxGetMainWnd()->SetWindowTextW(header);
             // play
             OnBnClickedBtnPlay();
         }
@@ -744,18 +747,11 @@ void CRTSPClientDlg::OnOpenLocal()
         CString output;
         output = c_fileName.c_str();
         m_audioName.SetWindowText(output);
-    }
 
-    if (!g_init)
-    {
-        AfxBeginThread(playThread, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
-        g_init = TRUE;
-    }
-    else if (g_pause)
-    {
-        m_player.Play();
-        g_pause = FALSE;
-        g_play = TRUE;
+		CString header = _T("RTSPClient - ") + output;
+		AfxGetMainWnd()->SetWindowTextW(header);
+
+		OnBnClickedBtnPlay();
     }
 }
 
@@ -764,7 +760,6 @@ afx_msg LRESULT CRTSPUrlDlg::OnGetUrl(WPARAM wParam, LPARAM lParam)
     CString* url = (CString*)lParam;
     return 0;
 }
-
 
 void CRTSPUrlDlg::OnBnClickedOk()
 {
