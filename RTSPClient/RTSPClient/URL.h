@@ -9,9 +9,6 @@
 // Need to link with Ws2_32.lib
 #pragma comment (lib, "Ws2_32.lib")
 #define MAX_BUF_LEN 2048
-#define DEFAULT_PATHLEN 64
-#define MAXCLIENTS 5
-#define MAXSOCKETS 10
 
 using namespace std;
 
