@@ -62,8 +62,6 @@ protected:
 // 实现
 protected:
     DECLARE_MESSAGE_MAP()
-protected:
-    afx_msg LRESULT OnGetUrl(WPARAM wParam, LPARAM lParam);
 public:
     CEdit m_rtsp_url_ctrl;
     CString m_rtsp_url;
@@ -82,7 +80,6 @@ void CRTSPUrlDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CRTSPUrlDlg, CDialogEx)
-    ON_MESSAGE(WM_GET_URL, &CRTSPUrlDlg::OnGetUrl)
     ON_BN_CLICKED(IDOK, &CRTSPUrlDlg::OnBnClickedOk)
 END_MESSAGE_MAP()
 
@@ -754,12 +751,6 @@ void CRTSPClientDlg::OnOpenLocal()
 
 		OnBnClickedBtnPlay();
     }
-}
-
-afx_msg LRESULT CRTSPUrlDlg::OnGetUrl(WPARAM wParam, LPARAM lParam)
-{
-    CString* url = (CString*)lParam;
-    return 0;
 }
 
 void CRTSPUrlDlg::OnBnClickedOk()
