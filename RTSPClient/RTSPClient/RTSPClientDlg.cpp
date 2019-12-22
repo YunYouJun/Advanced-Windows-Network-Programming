@@ -1,5 +1,4 @@
-﻿
-// RTSPClientDlg.cpp: 实现文件
+﻿// RTSPClientDlg.cpp: 实现文件
 //
 
 #include "stdafx.h"
@@ -208,9 +207,10 @@ BOOL CRTSPClientDlg::OnInitDialog()
     m_volText.SetWindowText(_T("100"));
 
 	// bold
-	CFont pfont;
-	pfont.CreateFontW(10, 0, 0, 0, FW_BOLD, 0, 1, 0, 0, 0, 0, 0, 0, _T("Mircosoft YaHei"));
-	m_audioName.SetFont(&pfont);
+	//CFont pfont;
+	//pfont.CreateFontW(10, 0, 0, 0, FW_BOLD, 0, 1, 0, 0, 0, 0, 0, 0, _T("Mircosoft YaHei"));
+	//m_audioName.SetFont(&pfont);
+	// whole y cannot be display
 
 	m_btnPlay.EnableWindow(FALSE);
 	m_progressBar.EnableWindow(FALSE);
@@ -302,7 +302,6 @@ void CRTSPClientDlg::OnBnClickedBtnPlay()
                 m_player.Play();
                 g_pause = FALSE;
                 g_play = TRUE;
-                //m_btnPlay.SetWindowText(_T("PAUSE"));
 
 				HBITMAP hBmp_pause = ::LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_PAUSE));
 				m_btnPlay.SetBitmap(hBmp_pause);
@@ -537,9 +536,11 @@ UINT CRTSPClientDlg::rtpThread(LPVOID lpParam)
 
 	while (p->g_rtsp && p->m_cs_udp.m_socket != INVALID_SOCKET)
 	{
-		memset(p->m_rtp_buf, 0, sizeof(p->m_rtp_buf));
 		int recv_size = p->m_cs_udp.RecvFrom(p->m_rtp_buf, p->cur_url.getIp().c_str(), atoi(p->c_serverRtpPort.c_str()));
 		if (recv_size > 0) {
+			// header 16
+			// https://datatracker.ietf.org/doc/rfc3550/?include_text=1
+			// 5.1 RTP Fixed Header Fields
 			p->m_fs.write(p->m_rtp_buf + 16, recv_size - 16);
 		}
 	}
@@ -616,14 +617,14 @@ void CRTSPClientDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
     if (*pSlider == m_progressBar)
     {
+		Sleep(100);
         if (g_local)
         {
             int pos = m_progressBar.GetPos();
-            m_player.SetTime(c_fileLength / 100 * pos);
+            m_player.SetTime(pos * c_fileLength / 100);
         }
         if (g_rtsp)
         {
-			Sleep(100);
             int pos = m_progressBar.GetPos();
 			m_curTime = pos * c_fileLength / 100;
 			int start_second = pos * c_fileLength / 100;

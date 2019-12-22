@@ -172,7 +172,7 @@ bool RTSP::CheckRtspResponse(int type)
             break;
         }
         CString c_error = CA2T(error.c_str());
-        AfxMessageBox(c_error);
+        TRACE(c_error);
         return FALSE;
     }
 }

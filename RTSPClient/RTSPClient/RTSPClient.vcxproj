@@ -188,7 +188,6 @@
   <ItemGroup>
     <ClInclude Include="ClientSocket.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="RTP.h" />
     <ClInclude Include="RTSP.h" />
     <ClInclude Include="RTSPClient.h" />
     <ClInclude Include="RTSPClientDlg.h" />
@@ -199,7 +198,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ClientSocket.cpp" />
-    <ClCompile Include="RTP.cpp" />
     <ClCompile Include="RTSP.cpp" />
     <ClCompile Include="RTSPClient.cpp" />
     <ClCompile Include="RTSPClientDlg.cpp" />
@@ -216,6 +214,7 @@
     <ResourceCompile Include="RTSPClient.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="res\RTSPClient.rc2" />
   </ItemGroup>
   <ItemGroup>
