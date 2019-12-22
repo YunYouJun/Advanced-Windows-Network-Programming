@@ -97,6 +97,7 @@ int ClientSocket::RecvFrom(char* recvbuf, const char* ip, u_short port) {
 	from.sin_addr.S_un.S_addr = inet_addr(ip);
 
 	int fromlen = sizeof(from);
+	memset(recvbuf, 0, sizeof(recvbuf));
 	int recv_size = recvfrom(m_socket, recvbuf, MAX_BUF_LEN, 0, (SOCKADDR *)&from, &fromlen);
 	return recv_size;
 }
