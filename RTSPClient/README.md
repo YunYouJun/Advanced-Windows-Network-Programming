@@ -1,7 +1,9 @@
 # RTSPClient
 
-## Todo
+You need download vlc(v2.1.5) from <ftp://ftp.videolan.org/pub/videolan/vlc/2.1.5/>.
 
-- [ ] Transparent Frame
-- [ ] change volume icon by sound level
-- [ ] 
+Then copy `plugins`, `libvlc.dll`, `libvlccore.dll` to Debug.
+
+For your convenience, I uploaded an executable release (include vlc(v2.1.5)) [here](https://github.com/YunYouJun/Advanced-Windows-Network-Programming/releases).
+
+Good Luck!
