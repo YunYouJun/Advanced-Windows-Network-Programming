@@ -13,6 +13,6 @@ Thanks for watching my code.
 
 > Thanks for playing my game. —— James Halliday 「Ready Player One」
 
-If it's helpful for you, please give me a ⭐.
+If it's helpful for you, please give me a ⭐ or [buy one cup Cola for me](https://github.com/YunYouJun/yunyoujun.github.io/issues/96).
 
 Good Luck!
