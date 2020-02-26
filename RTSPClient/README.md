@@ -10,10 +10,6 @@ For your convenience, I uploaded an executable release (include vlc(v2.1.5)) [he
 
 Good Luck!
 
-Good Luck!
-
-Good Luck!
-
 ---
 
 本代码只留了 UDP 的部分.
